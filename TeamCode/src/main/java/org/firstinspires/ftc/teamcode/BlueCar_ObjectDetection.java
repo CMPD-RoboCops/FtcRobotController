@@ -89,7 +89,21 @@ public class BlueCar_ObjectDetection extends LinearOpMode {
             while (opModeIsActive()) {
 
                 telemetryTfod();
-
+                //Find x coordinate
+                List<Recognition> currentRecognitions = tfod.getRecognitions();
+                for (Recognition recognition : currentRecognitions) {
+                    double BlueCarX = (recognition.getLeft() + recognition.getRight()) / 2;
+                    telemetry.addData("X Position", BlueCarX);
+                    if(BlueCarX < 250) {
+                        telemetry.addData("Line", "Left");
+                    } else if(BlueCarX > 250 && BlueCarX < 500) {
+                        telemetry.addData("Line", "Center");
+                    } else if(BlueCarX > 500) {
+                        telemetry.addData("Line", "Right");
+                    } else {
+                        telemetry.addData("Line", "Unknown");
+                    }
+                }
                 // Push telemetry to the Driver Station.
                 telemetry.update();
 
