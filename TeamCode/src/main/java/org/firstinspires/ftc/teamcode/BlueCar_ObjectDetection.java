@@ -31,6 +31,9 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -47,9 +50,16 @@ import java.util.List;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list.
  */
-@TeleOp(name = "Blue Car TensorFlow Object Detection", group = "Concept")
+
+@TeleOp(name = "Blue Car TensorFlow Object Detection Alex", group = "Concept")
 //@Disabled
 public class BlueCar_ObjectDetection extends LinearOpMode {
+
+    private DcMotor leftFront = null;
+    private DcMotor rightFront = null;
+    private DcMotor leftBack = null;
+    private DcMotor rightBack = null;
+    private ElapsedTime runtime = new ElapsedTime();
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
@@ -77,6 +87,11 @@ public class BlueCar_ObjectDetection extends LinearOpMode {
     @Override
     public void runOpMode() {
 
+        leftFront = hardwareMap.get(DcMotorEx.class, "front left");
+        rightFront = hardwareMap.get(DcMotorEx.class, "right front");
+        leftBack = hardwareMap.get(DcMotorEx.class, "back left");
+        rightBack = hardwareMap.get(DcMotorEx.class, "right back");
+
         initTfod();
 
         // Wait for the DS start button to be touched.
@@ -85,23 +100,36 @@ public class BlueCar_ObjectDetection extends LinearOpMode {
         telemetry.update();
         waitForStart();
 
+        boolean lineFound = false;
+
         if (opModeIsActive()) {
             while (opModeIsActive()) {
 
                 telemetryTfod();
                 //Find x coordinate
-                List<Recognition> currentRecognitions = tfod.getRecognitions();
-                for (Recognition recognition : currentRecognitions) {
-                    double BlueCarX = (recognition.getLeft() + recognition.getRight()) / 2;
-                    telemetry.addData("X Position", BlueCarX);
-                    if(BlueCarX < 250) {
-                        telemetry.addData("Line", "Left");
-                    } else if(BlueCarX > 250 && BlueCarX < 500) {
-                        telemetry.addData("Line", "Center");
-                    } else if(BlueCarX > 500) {
-                        telemetry.addData("Line", "Right");
-                    } else {
-                        telemetry.addData("Line", "Unknown");
+                if(!lineFound) {
+                    List<Recognition> currentRecognitions = tfod.getRecognitions();
+                    for (Recognition recognition : currentRecognitions) {
+                        double BlueCarX = (recognition.getLeft() + recognition.getRight()) / 2;
+                        telemetry.addData("X Position", BlueCarX);
+                        if (BlueCarX < 250) {
+                            telemetry.addData("Line", "Left");
+                            telemetry.update();
+                            visionPortal.stopStreaming();
+                            lineFound = true;
+                        } else if (BlueCarX > 250 && BlueCarX < 500) {
+                            telemetry.addData("Line", "Center");
+                            telemetry.update();
+                            visionPortal.stopStreaming();
+                            lineFound = true;
+                        } else if (BlueCarX > 500) {
+                            telemetry.addData("Line", "Right");
+                            telemetry.update();
+                            visionPortal.stopStreaming();
+                            lineFound = true;
+                        } else {
+                            telemetry.addData("Line", "Unknown");
+                        }
                     }
                 }
                 // Push telemetry to the Driver Station.
