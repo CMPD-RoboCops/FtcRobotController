@@ -79,13 +79,6 @@ public class RedCar_ObjectDetection extends LinearOpMode {
 
         initTfod();
 
-        while(tfod.getRecognitions().size()==0)
-        {
-            telemetry.addData("Image", "%s (%.0f %% Conf.)", tfod.getRecognitions().size());
-        }
-
-
-
         // Wait for the DS start button to be touched.
         telemetry.addData("DS preview on/off", "3 dots, Camera Stream");
         telemetry.addData(">", "Touch Play to start OpMode");

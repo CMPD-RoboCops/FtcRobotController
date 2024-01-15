@@ -270,11 +270,33 @@ public class MJBAuto extends LinearOpMode
                 //TODO Recover so you don't run over and move your pixel
             }
 
-            Trajectory DriveToBoard = drive.trajectoryBuilder(new Pose2d())
-                    .forward(DistanceToBoard)
+            double portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
+            double starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
+            double averageDistance = (portDistance + starboardDistance) / 2;
+
+            Trajectory FastCrawl = drive.trajectoryBuilder(new Pose2d())
+                    .forward(5)
                     .build();
 
-            drive.followTrajectory(DriveToBoard);
+            telemetry.addData("Port range", String.format("%.01f in", portDistance));
+            telemetry.addData("Starboard range", String.format("%.01f in",starboardDistance));
+            telemetry.update();
+
+            while(averageDistance>14)
+            {
+
+                //TODO Remove Sleep
+                sleep(1000);
+                drive.followTrajectory(FastCrawl);
+                portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
+                starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
+                averageDistance = (portDistance + starboardDistance) / 2;
+
+                //Update Telemetry
+                telemetry.addData("Port range", String.format("%.01f in", portDistance));
+                telemetry.addData("Starboard range", String.format("%.01f in",starboardDistance));
+                telemetry.update();
+            }
 
             //Get April Tag Telemetry
             //visionPortal.resumeStreaming();
