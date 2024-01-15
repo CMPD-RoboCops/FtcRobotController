@@ -91,15 +91,19 @@ public class MJBAuto extends LinearOpMode
 
         //Define Your Trajectories Here
         Trajectory RightSpikeTurn = drive.trajectoryBuilder(new Pose2d())
-                .strafeRight(16.2) //90 degree turn right
+                .strafeRight(15) //90 degree turn right
                 .build();
 
         Trajectory LeftSpikeTurn = drive.trajectoryBuilder(new Pose2d())
                 .strafeLeft(14.7) //90 degree turn left
                 .build();
 
+        Trajectory CenterSpikeTurn = drive.trajectoryBuilder(new Pose2d())
+                .strafeLeft(16.2) //90 degree turn left
+                .build();
+
         Trajectory SideSpikeOvershoot = drive.trajectoryBuilder(new Pose2d())
-                .forward(6) //90 degree turn left
+                .forward(8) //90 degree turn left
                 .build();
 
         Trajectory SideSpikeForward = drive.trajectoryBuilder(new Pose2d())
@@ -145,6 +149,18 @@ public class MJBAuto extends LinearOpMode
 
         Trajectory TurnAround = drive.trajectoryBuilder(new Pose2d())
                 .strafeLeft(29.4) // Tune Me
+                .build();
+
+        Trajectory RightSpikeSlideRight = drive.trajectoryBuilder(new Pose2d())
+                .lineToLinearHeading(new Pose2d(0, -4, Math.toRadians(-68)))
+                .build();
+
+        Trajectory RightSpikeSlideLeft = drive.trajectoryBuilder(new Pose2d())
+                .lineToLinearHeading(new Pose2d(0, 4, Math.toRadians(68)))
+                .build();
+
+        Trajectory RightSpikeForward = drive.trajectoryBuilder(new Pose2d())
+                .forward(15)
                 .build();
 
         //Control Structure Variables
@@ -219,8 +235,7 @@ public class MJBAuto extends LinearOpMode
                         SpikeLineFound = true;
                         //TODO Drop Pixel Code Here
                         drive.followTrajectory(CenterSpikeRecover);
-                        drive.followTrajectory(RightSpikeTurn);
-                        DistanceToBoard = 21;
+                        drive.followTrajectory(CenterSpikeTurn);
                     } else {
                         drive.followTrajectory(BackwardCreep);
                     }
@@ -242,7 +257,6 @@ public class MJBAuto extends LinearOpMode
                         SpikeLineFound = true;
                         drive.followTrajectory(LeftSpikeRecover);
                         drive.followTrajectory(TurnAround);
-                        DistanceToBoard = 18;
                         //Drop Pixel Here
                     } else {
                         drive.followTrajectory(BackwardCreep);
@@ -255,13 +269,18 @@ public class MJBAuto extends LinearOpMode
                 //Move up to SpikeLine, should overshoot a slight amount
                 drive.followTrajectory(SideSpikeForward);
                 drive.followTrajectory(RightSpikeTurn);
+                drive.followTrajectory(SideSpikeOvershoot);
+
 
                 //Red Alliance Code, TODO Implement Blue Alliance Code
                 while (SpikeLineFound == false)
                 {
-                    if (colorStarboard.red() > 600 || colorPort.red() > 600) {
+                    if (colorStarboard.red() > 400 || colorPort.red() > 400) {
                         SpikeLineFound = true;
-                        DistanceToBoard = 12;
+                        drive.followTrajectory(LeftSpikeRecover);
+                        drive.followTrajectory(RightSpikeSlideRight);
+                        drive.followTrajectory(RightSpikeForward);
+                        drive.followTrajectory(RightSpikeSlideLeft);
                         //Drop Pixel Here
                     } else {
                         drive.followTrajectory(BackwardCreep);
