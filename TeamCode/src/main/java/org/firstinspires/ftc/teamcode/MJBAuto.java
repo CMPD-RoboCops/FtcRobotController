@@ -85,13 +85,13 @@ public class MJBAuto extends LinearOpMode
         sensorDistanceStarboard = hardwareMap.get(DistanceSensor.class, "distancesensorstarboard");
 
         colorPort = hardwareMap.get(ColorSensor.class, "colorsensorport");
-        colorStarboard = hardwareMap.get(ColorSensor.class, "colorsensorport");
+        colorStarboard = hardwareMap.get(ColorSensor.class, "colorsensorstarboard");
         Rev2mDistanceSensor sensorTimeOfFlight = (Rev2mDistanceSensor) sensorDistancePort;
         Rev2mDistanceSensor sensorTimeOfFlightStarboard = (Rev2mDistanceSensor) sensorDistanceStarboard;
 
         //Define Your Trajectories Here
         Trajectory RightSpikeTurn = drive.trajectoryBuilder(new Pose2d())
-                .strafeRight(18) //90 degree turn right
+                .strafeRight(16.2) //90 degree turn right
                 .build();
 
         Trajectory LeftSpikeTurn = drive.trajectoryBuilder(new Pose2d())
@@ -99,11 +99,11 @@ public class MJBAuto extends LinearOpMode
                 .build();
 
         Trajectory SideSpikeForward = drive.trajectoryBuilder(new Pose2d())
-                .forward(24) // Tune Me
+                .forward(23) // Tune Me
                 .build();
 
         Trajectory CenterSpikeForward = drive.trajectoryBuilder(new Pose2d())
-                .forward(20) // Tune Me
+                .forward(24) // Tune Me
                 .build();
 
         Trajectory SideSpikeLineForward = drive.trajectoryBuilder(new Pose2d())
@@ -118,17 +118,25 @@ public class MJBAuto extends LinearOpMode
                 .strafeLeft(-36) //180 degree turn right
                 .build();
 
+        Trajectory CenterSpikeRecover = drive.trajectoryBuilder(new Pose2d())
+                .forward(-6)
+                .build();
+
         Trajectory BackSideDriveToBoard = drive.trajectoryBuilder(new Pose2d())
                 .forward(60) // Tune Me
                 .build();
 
         Trajectory BackwardCreep = drive.trajectoryBuilder(new Pose2d())
-                .forward(-1) // Tune Me
+                .forward(-0.75) // Tune Me
                 .build();
 
         //May not want to use this, may need to use smaller increments combined with sensor reads to avoid hitting poles
         Trajectory FrontSideDriveToBoard = drive.trajectoryBuilder(new Pose2d())
                 .forward(100) // Tune Me
+                .build();
+
+        Trajectory CenterDriveToBoard = drive.trajectoryBuilder(new Pose2d())
+                .forward(21) // Tune Me
                 .build();
 
         Trajectory Backup = drive.trajectoryBuilder(new Pose2d())
@@ -151,7 +159,7 @@ public class MJBAuto extends LinearOpMode
 
             while(tfod.getRecognitions().size()==0)
             {
-                telemetry.addData("Image", "%s (%.0f %% Conf.)", tfod.getRecognitions().size());
+                telemetry.addData("Image", tfod.getRecognitions().size());
             }
 
             //Team Prop Detection Control Structure
@@ -194,7 +202,7 @@ public class MJBAuto extends LinearOpMode
 
 
             //Go to Correct Spike Line
-            if(TeamPropPosition=="Center")
+            if(TeamPropPosition.equals("Center"))
             {
                 //Move up to SpikeLine, should overshoot a slight amount
                 drive.followTrajectory(CenterSpikeForward);
@@ -203,19 +211,24 @@ public class MJBAuto extends LinearOpMode
                 //Red Alliance Code, TODO Implement Blue Alliance Code
                 while (SpikeLineFound == false)
                 {
-                    if (colorStarboard.red() > 600 || colorPort.red() > 600) {
+                    if (colorStarboard.red() > 400 || colorPort.red() > 400) {
                         SpikeLineFound = true;
                         DistanceToBoard = 20;
                         //TODO Drop Pixel Code Here
-
+                        drive.followTrajectory(CenterSpikeRecover);
                         drive.followTrajectory(RightSpikeTurn);
+                        drive.followTrajectory(CenterDriveToBoard);
                     } else {
                         drive.followTrajectory(BackwardCreep);
+                        telemetry.addData("Red Starboard", colorStarboard.red());
+                        telemetry.addData("Red Port", colorPort.red());
+                        telemetry.update();
                     }
                 }
+
             }
 
-            if(TeamPropPosition=="Left")
+            if(TeamPropPosition.equals("Left"))
             {
                 //Move up to SpikeLine, should overshoot a slight amount
                 drive.followTrajectory(SideSpikeForward);
@@ -238,7 +251,7 @@ public class MJBAuto extends LinearOpMode
                 drive.followTrajectory(LeftSpikeRecover);
             }
 
-            if(TeamPropPosition=="Right")
+            if(TeamPropPosition.equals("Right"))
             {
                 //Move up to SpikeLine, should overshoot a slight amount
                 drive.followTrajectory(SideSpikeForward);
@@ -257,11 +270,6 @@ public class MJBAuto extends LinearOpMode
                 }
                 //TODO Recover so you don't run over and move your pixel
             }
-
-            //Drive to Board
-            Trajectory DriveToBoard = drive.trajectoryBuilder(new Pose2d())
-                    .forward(DistanceToBoard) // Tune Me
-                    .build();
 
             //drive.followTrajectory(DriveToBoard);
 
