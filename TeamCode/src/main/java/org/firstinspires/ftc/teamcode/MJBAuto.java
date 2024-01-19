@@ -153,6 +153,9 @@ public class MJBAuto extends LinearOpMode
         boolean SpikeLineFound = false;
         int DistanceToBoard = 1;
 
+        //Debug Code
+        //telemetry.addData(">", "Checkpoint #1");
+        //telemetry.update();
 
         //Very last thing before OpModeIsActive
         waitForStart();
@@ -161,10 +164,19 @@ public class MJBAuto extends LinearOpMode
         {
             telemetryTfod();
 
+            //Debug Code
+            //telemetry.addData(">", "Checkpoint #2");
+            //telemetry.update();
+
             while(tfod.getRecognitions().size()==0)
             {
                 telemetry.addData("Image", tfod.getRecognitions().size());
             }
+
+            //Debug Code
+            //telemetry.addData(">", "Checkpoint #3");
+            //telemetry.update();
+
 
             //Team Prop Detection Control Structure
             if(!lineFound)
@@ -195,6 +207,7 @@ public class MJBAuto extends LinearOpMode
                     else
                     {
                         telemetry.addData("Line", "Unknown");
+                        telemetry.update();
                         lineFound = false;
                     }
                 }
@@ -303,7 +316,7 @@ public class MJBAuto extends LinearOpMode
             //telemetryAprilTag();
 
             //Stop after you have found April Tag
-            visionPortal.stopStreaming();
+            //visionPortal.stopStreaming();
 
             //
 
