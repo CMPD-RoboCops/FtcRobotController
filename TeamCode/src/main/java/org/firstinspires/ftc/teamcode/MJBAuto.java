@@ -99,7 +99,7 @@ public class MJBAuto extends LinearOpMode
                 .build();
 
         Trajectory CenterSpikeTurn = drive.trajectoryBuilder(new Pose2d())
-                .strafeRight(16.2) //90 degree turn left
+                .strafeRight(15) //90 degree turn left
                 .build();
 
         Trajectory LeftSpikeOvershoot = drive.trajectoryBuilder(new Pose2d())
@@ -152,7 +152,7 @@ public class MJBAuto extends LinearOpMode
                 .build();
 
         Trajectory TurnAround = drive.trajectoryBuilder(new Pose2d())
-                .strafeLeft(31.5) // Tune Me
+                .strafeLeft(29) // Tune Me
                 .build();
 
         Trajectory RightSpikeSlideRight = drive.trajectoryBuilder(new Pose2d())
@@ -168,11 +168,19 @@ public class MJBAuto extends LinearOpMode
                 .build();
 
         Trajectory AprilTagRight = drive.trajectoryBuilder(new Pose2d())
-                .lineToLinearHeading(new Pose2d(0, -1.5, Math.toRadians(-25.5)))
+                .lineToLinearHeading(new Pose2d(0, -1, Math.toRadians(-17)))
                 .build();
 
         Trajectory AprilTagLeft = drive.trajectoryBuilder(new Pose2d())
-                .lineToLinearHeading(new Pose2d(0, 1.5, Math.toRadians(25.5)))
+                .lineToLinearHeading(new Pose2d(0, 1, Math.toRadians(17)))
+                .build();
+
+        Trajectory ParkSlideRight = drive.trajectoryBuilder(new Pose2d())
+                .lineToLinearHeading(new Pose2d(0, -6, Math.toRadians(-102)))
+                .build();
+
+        Trajectory ParkForward = drive.trajectoryBuilder(new Pose2d())
+                .forward(8)
                 .build();
 
         //Control Structure Variables
@@ -324,14 +332,14 @@ public class MJBAuto extends LinearOpMode
                     .build();
 
             Trajectory MediumCrawl = drive.trajectoryBuilder(new Pose2d())
-                    .forward(3)
+                    .forward(2.5)
                     .build();
 
             telemetry.addData("Port range", String.format("%.01f in", portDistance));
             telemetry.addData("Starboard range", String.format("%.01f in",starboardDistance));
             telemetry.update();
 
-            while(averageDistance>11)
+            while(averageDistance>15)
             {
 
                 //TODO Remove Sleep
@@ -345,7 +353,7 @@ public class MJBAuto extends LinearOpMode
                 telemetry.addData("Starboard range", String.format("%.01f in",starboardDistance));
                 telemetry.update();
             }
-            while(averageDistance>5)
+            while(averageDistance>6)
             {
 
                 //TODO Remove Sleep
@@ -370,10 +378,13 @@ public class MJBAuto extends LinearOpMode
                     if (detection.metadata != null) {
                         if (detection.id > TeamPropPosition) {
                             drive.followTrajectory(AprilTagLeft);
+                            break;
                         } else if (detection.id < TeamPropPosition) {
                             drive.followTrajectory(AprilTagRight);
+                            break;
                         } else if (detection.id == TeamPropPosition) {
                             TagFound = true;
+                            break;
                         }
                     }
                 }
@@ -381,8 +392,15 @@ public class MJBAuto extends LinearOpMode
             //Stop after you have found April Tag
             visionPortal.stopStreaming();
 
-            drive.followTrajectory(RightSpikeSlideRight);
-            drive.followTrajectory(FastCrawl);
+            if(TeamPropPosition == 4) {
+                drive.followTrajectory(ParkSlideRight);
+            } else if(TeamPropPosition == 5) {
+                drive.followTrajectory(ParkSlideRight);
+            } else if(TeamPropPosition == 6) {
+                drive.followTrajectory(RightSpikeSlideRight);
+            }
+
+            drive.followTrajectory(ParkForward);
 
         }
 
