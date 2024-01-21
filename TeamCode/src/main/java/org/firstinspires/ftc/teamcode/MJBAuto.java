@@ -99,11 +99,15 @@ public class MJBAuto extends LinearOpMode
                 .build();
 
         Trajectory CenterSpikeTurn = drive.trajectoryBuilder(new Pose2d())
-                .strafeLeft(16.2) //90 degree turn left
+                .strafeRight(16.2) //90 degree turn left
                 .build();
 
-        Trajectory SideSpikeOvershoot = drive.trajectoryBuilder(new Pose2d())
-                .forward(8) //90 degree turn left
+        Trajectory LeftSpikeOvershoot = drive.trajectoryBuilder(new Pose2d())
+                .forward(6)
+                .build();
+
+        Trajectory RightSpikeOvershoot = drive.trajectoryBuilder(new Pose2d())
+                .forward(8)
                 .build();
 
         Trajectory SideSpikeForward = drive.trajectoryBuilder(new Pose2d())
@@ -135,7 +139,7 @@ public class MJBAuto extends LinearOpMode
                 .build();
 
         Trajectory BackwardCreep = drive.trajectoryBuilder(new Pose2d())
-                .forward(-0.75) // Tune Me
+                .forward(-0.65) // Tune Me
                 .build();
 
         //May not want to use this, may need to use smaller increments combined with sensor reads to avoid hitting poles
@@ -148,7 +152,7 @@ public class MJBAuto extends LinearOpMode
                 .build();
 
         Trajectory TurnAround = drive.trajectoryBuilder(new Pose2d())
-                .strafeLeft(29.4) // Tune Me
+                .strafeLeft(31.5) // Tune Me
                 .build();
 
         Trajectory RightSpikeSlideRight = drive.trajectoryBuilder(new Pose2d())
@@ -163,9 +167,17 @@ public class MJBAuto extends LinearOpMode
                 .forward(15)
                 .build();
 
+        Trajectory AprilTagRight = drive.trajectoryBuilder(new Pose2d())
+                .lineToLinearHeading(new Pose2d(0, -1.5, Math.toRadians(-25.5)))
+                .build();
+
+        Trajectory AprilTagLeft = drive.trajectoryBuilder(new Pose2d())
+                .lineToLinearHeading(new Pose2d(0, 1.5, Math.toRadians(25.5)))
+                .build();
+
         //Control Structure Variables
         boolean lineFound = false;
-        String TeamPropPosition = "";
+        int TeamPropPosition = 0;
         boolean SpikeLineFound = false;
         int DistanceToBoard = 1;
 
@@ -204,19 +216,19 @@ public class MJBAuto extends LinearOpMode
                     telemetry.addData("X Position", CarX);
                     if (CarX < 250)
                     {
-                        TeamPropPosition = "Left";
+                        TeamPropPosition = 4;
                         telemetry.addData("Line", TeamPropPosition);
                         lineFound = true;
                     }
                     else if (CarX > 250 && CarX < 500)
                     {
-                        TeamPropPosition = "Center";
+                        TeamPropPosition = 5;
                         telemetry.addData("Line", TeamPropPosition);
                         lineFound = true;
                     }
                     else if (CarX > 500)
                     {
-                        TeamPropPosition = "Right";
+                        TeamPropPosition = 6;
                         telemetry.addData("Line", TeamPropPosition);
                         lineFound = true;
                     }
@@ -234,8 +246,8 @@ public class MJBAuto extends LinearOpMode
             //visionPortal.stopStreaming();
 
 
-            //Go to Correct Spike Line
-            if(TeamPropPosition.equals("Center"))
+            //Go to Correct Spike Line CENTER
+            if(TeamPropPosition == 5)
             {
                 //Move up to SpikeLine, should overshoot a slight amount
                 drive.followTrajectory(CenterSpikeForward);
@@ -244,7 +256,7 @@ public class MJBAuto extends LinearOpMode
                 //Red Alliance Code, TODO Implement Blue Alliance Code
                 while (SpikeLineFound == false)
                 {
-                    if (colorStarboard.red() > 400 || colorPort.red() > 400) {
+                    if (colorStarboard.red() > 390 || colorPort.red() > 390) {
                         SpikeLineFound = true;
                         //TODO Drop Pixel Code Here
                         drive.followTrajectory(CenterSpikeRecover);
@@ -255,18 +267,18 @@ public class MJBAuto extends LinearOpMode
                 }
 
             }
-
-            if(TeamPropPosition.equals("Left"))
+            // LEFT
+            if(TeamPropPosition == 4)
             {
                 //Move up to SpikeLine, should overshoot a slight amount
                 drive.followTrajectory(SideSpikeForward);
                 drive.followTrajectory(LeftSpikeTurn);
-                drive.followTrajectory(SideSpikeOvershoot);
+                drive.followTrajectory(LeftSpikeOvershoot);
 
                 //Red Alliance Code, TODO Implement Blue Alliance Code
                 while (SpikeLineFound == false)
                 {
-                    if (colorStarboard.red() > 400 || colorPort.red() > 400) {
+                    if (colorStarboard.red() > 390 || colorPort.red() > 390) {
                         SpikeLineFound = true;
                         drive.followTrajectory(LeftSpikeRecover);
                         drive.followTrajectory(TurnAround);
@@ -276,19 +288,20 @@ public class MJBAuto extends LinearOpMode
                     }
                 }
             }
-
-            if(TeamPropPosition.equals("Right"))
+            // RIGHT
+            if(TeamPropPosition == 6)
             {
                 //Move up to SpikeLine, should overshoot a slight amount
                 drive.followTrajectory(SideSpikeForward);
                 drive.followTrajectory(RightSpikeTurn);
-                drive.followTrajectory(SideSpikeOvershoot);
+                drive.followTrajectory(RightSpikeOvershoot);
 
 
                 //Red Alliance Code, TODO Implement Blue Alliance Code
                 while (SpikeLineFound == false)
+
                 {
-                    if (colorStarboard.red() > 400 || colorPort.red() > 400) {
+                    if (colorStarboard.red() > 390 || colorPort.red() > 390) {
                         SpikeLineFound = true;
                         drive.followTrajectory(LeftSpikeRecover);
                         drive.followTrajectory(RightSpikeSlideRight);
@@ -307,19 +320,36 @@ public class MJBAuto extends LinearOpMode
             double averageDistance = (portDistance + starboardDistance) / 2;
 
             Trajectory FastCrawl = drive.trajectoryBuilder(new Pose2d())
-                    .forward(5)
+                    .forward(10)
+                    .build();
+
+            Trajectory MediumCrawl = drive.trajectoryBuilder(new Pose2d())
+                    .forward(3)
                     .build();
 
             telemetry.addData("Port range", String.format("%.01f in", portDistance));
             telemetry.addData("Starboard range", String.format("%.01f in",starboardDistance));
             telemetry.update();
 
-            while(averageDistance>14)
+            while(averageDistance>11)
             {
 
                 //TODO Remove Sleep
-                sleep(1000);
                 drive.followTrajectory(FastCrawl);
+                portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
+                starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
+                averageDistance = (portDistance + starboardDistance) / 2;
+
+                //Update Telemetry
+                telemetry.addData("Port range", String.format("%.01f in", portDistance));
+                telemetry.addData("Starboard range", String.format("%.01f in",starboardDistance));
+                telemetry.update();
+            }
+            while(averageDistance>5)
+            {
+
+                //TODO Remove Sleep
+                drive.followTrajectory(MediumCrawl);
                 portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
                 starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
                 averageDistance = (portDistance + starboardDistance) / 2;
@@ -331,18 +361,28 @@ public class MJBAuto extends LinearOpMode
             }
 
             //Get April Tag Telemetry
-            //visionPortal.resumeStreaming();
-            //telemetryAprilTag();
 
+            boolean TagFound = false;
+            while(!TagFound) {
+                telemetryAprilTag();
+                telemetry.update();
+                for (AprilTagDetection detection : aprilTag.getDetections()) {
+                    if (detection.metadata != null) {
+                        if (detection.id > TeamPropPosition) {
+                            drive.followTrajectory(AprilTagLeft);
+                        } else if (detection.id < TeamPropPosition) {
+                            drive.followTrajectory(AprilTagRight);
+                        } else if (detection.id == TeamPropPosition) {
+                            TagFound = true;
+                        }
+                    }
+                }
+            }
             //Stop after you have found April Tag
-            //visionPortal.stopStreaming();
+            visionPortal.stopStreaming();
 
-            //
-
-
-
-
-
+            drive.followTrajectory(RightSpikeSlideRight);
+            drive.followTrajectory(FastCrawl);
 
         }
 
@@ -358,6 +398,7 @@ public class MJBAuto extends LinearOpMode
     private void initTfod() {
 
         // Create the TensorFlow processor by using a builder.
+        aprilTag = new AprilTagProcessor.Builder().build();
         tfod = new TfodProcessor.Builder()
 
                 // With the following lines commented out, the default TfodProcessor Builder
@@ -404,6 +445,7 @@ public class MJBAuto extends LinearOpMode
 
         // Set and enable the processor.
         builder.addProcessor(tfod);
+        builder.addProcessor(aprilTag);
 
         // Build the Vision Portal, using the above settings.
         visionPortal = builder.build();
@@ -444,16 +486,6 @@ public class MJBAuto extends LinearOpMode
     private void initAprilTag() {
 
         // Create the AprilTag processor the easy way.
-        aprilTag = AprilTagProcessor.easyCreateWithDefaults();
-
-        // Create the vision portal the easy way.
-        if (USE_WEBCAM) {
-            visionPortal = VisionPortal.easyCreateWithDefaults(
-                    hardwareMap.get(WebcamName.class, "Webcam 1"), aprilTag);
-        } else {
-            visionPortal = VisionPortal.easyCreateWithDefaults(
-                    BuiltinCameraDirection.BACK, aprilTag);
-        }
 
     }   // end method initAprilTag()
 
@@ -461,7 +493,7 @@ public class MJBAuto extends LinearOpMode
     /**
      * Add telemetry about AprilTag detections.
      */
-    /*
+
     private void telemetryAprilTag() {
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
@@ -486,6 +518,6 @@ public class MJBAuto extends LinearOpMode
         telemetry.addLine("RBE = Range, Bearing & Elevation");
 
     }   // end method telemetryAprilTag()
-*/
+
 
 }  // end of class
