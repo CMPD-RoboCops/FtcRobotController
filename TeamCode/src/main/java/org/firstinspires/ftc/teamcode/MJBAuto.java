@@ -99,7 +99,7 @@ public class MJBAuto extends LinearOpMode
                 .build();
 
         Trajectory CenterSpikeTurn = drive.trajectoryBuilder(new Pose2d())
-                .strafeRight(15) //90 degree turn left
+                .strafeRight(17) //90 degree turn left
                 .build();
 
         Trajectory LeftSpikeOvershoot = drive.trajectoryBuilder(new Pose2d())
@@ -127,7 +127,7 @@ public class MJBAuto extends LinearOpMode
                 .build();
 
         Trajectory LeftSpikeRecover = drive.trajectoryBuilder(new Pose2d())
-                .forward(-8) //180 degree turn right
+                .forward(-6) //180 degree turn right
                 .build();
 
         Trajectory CenterSpikeRecover = drive.trajectoryBuilder(new Pose2d())
@@ -142,17 +142,12 @@ public class MJBAuto extends LinearOpMode
                 .forward(-0.65) // Tune Me
                 .build();
 
-        //May not want to use this, may need to use smaller increments combined with sensor reads to avoid hitting poles
-        Trajectory FrontSideDriveToBoard = drive.trajectoryBuilder(new Pose2d())
-                .forward(100) // Tune Me
-                .build();
-
         Trajectory Backup = drive.trajectoryBuilder(new Pose2d())
                 .forward(-5) // Tune Me
                 .build();
 
         Trajectory TurnAround = drive.trajectoryBuilder(new Pose2d())
-                .strafeLeft(29) // Tune Me
+                .strafeLeft(31) // Tune Me
                 .build();
 
         Trajectory RightSpikeSlideRight = drive.trajectoryBuilder(new Pose2d())
@@ -175,12 +170,28 @@ public class MJBAuto extends LinearOpMode
                 .lineToLinearHeading(new Pose2d(0, 1, Math.toRadians(17)))
                 .build();
 
+        Trajectory AprilTagRightSmall = drive.trajectoryBuilder(new Pose2d())
+                .lineToLinearHeading(new Pose2d(0, -0.3, Math.toRadians(-5.1)))
+                .build();
+
+        Trajectory AprilTagLeftSmall = drive.trajectoryBuilder(new Pose2d())
+                .lineToLinearHeading(new Pose2d(0, 0.3, Math.toRadians(5.1)))
+                .build();
+
         Trajectory ParkSlideRight = drive.trajectoryBuilder(new Pose2d())
                 .lineToLinearHeading(new Pose2d(0, -6, Math.toRadians(-102)))
                 .build();
 
         Trajectory ParkForward = drive.trajectoryBuilder(new Pose2d())
                 .forward(8)
+                .build();
+
+        Trajectory TurnLeftSmall = drive.trajectoryBuilder(new Pose2d())
+                .strafeLeft(1) //90 degree turn right
+                .build();
+
+        Trajectory TurnRightSmall = drive.trajectoryBuilder(new Pose2d())
+                .strafeRight(1) //90 degree turn right
                 .build();
 
         //Control Structure Variables
@@ -290,7 +301,7 @@ public class MJBAuto extends LinearOpMode
                         SpikeLineFound = true;
                         drive.followTrajectory(LeftSpikeRecover);
                         drive.followTrajectory(TurnAround);
-                        //Drop Pixel Here
+                        //Drop Pixel Herej
                     } else {
                         drive.followTrajectory(BackwardCreep);
                     }
@@ -368,6 +379,24 @@ public class MJBAuto extends LinearOpMode
                 telemetry.update();
             }
 
+            portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
+            starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
+
+            while(portDistance > starboardDistance) {
+                portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
+                starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
+                drive.followTrajectory(TurnRightSmall);
+            }
+
+            portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
+            starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
+
+            while(starboardDistance > portDistance) {
+                portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
+                starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
+                drive.followTrajectory(TurnLeftSmall);
+            }
+
             //Get April Tag Telemetry
 
             boolean TagFound = false;
@@ -381,6 +410,12 @@ public class MJBAuto extends LinearOpMode
                             break;
                         } else if (detection.id < TeamPropPosition) {
                             drive.followTrajectory(AprilTagRight);
+                            break;
+                        } else if (detection.ftcPose.x < -1 && detection.id == TeamPropPosition) {
+                            drive.followTrajectory(AprilTagLeftSmall);
+                            break;
+                        } else if (detection.ftcPose.x > 1 && detection.id == TeamPropPosition) {
+                            drive.followTrajectory(AprilTagRightSmall);
                             break;
                         } else if (detection.id == TeamPropPosition) {
                             TagFound = true;
