@@ -76,23 +76,19 @@ public class RedTeamFrontAuto extends LinearOpMode
         Rev2mDistanceSensor sensorTimeOfFlightStarboard = (Rev2mDistanceSensor) sensorDistanceStarboard;
 
         //Define Your Trajectories Here
-        Trajectory RightSpikeTurn = drive.trajectoryBuilder(new Pose2d())
+        Trajectory RightTurn = drive.trajectoryBuilder(new Pose2d())
                 .strafeRight(15) //90 degree turn right
                 .build();
 
-        Trajectory LeftSpikeTurn = drive.trajectoryBuilder(new Pose2d())
-                .strafeLeft(14.7) //90 degree turn left
+        Trajectory LeftTurn = drive.trajectoryBuilder(new Pose2d())
+                .strafeLeft(15) //90 degree turn left
                 .build();
 
-        Trajectory CenterSpikeTurn = drive.trajectoryBuilder(new Pose2d())
-                .strafeRight(15) //90 degree turn left
+        Trajectory TurnAround = drive.trajectoryBuilder(new Pose2d())
+                .strafeLeft(29) // Tune Me
                 .build();
 
-        Trajectory LeftSpikeOvershoot = drive.trajectoryBuilder(new Pose2d())
-                .forward(6)
-                .build();
-
-        Trajectory RightSpikeOvershoot = drive.trajectoryBuilder(new Pose2d())
+        Trajectory SideSpikeOvershoot = drive.trajectoryBuilder(new Pose2d())
                 .forward(8)
                 .build();
 
@@ -104,15 +100,11 @@ public class RedTeamFrontAuto extends LinearOpMode
                 .forward(24) // Tune Me
                 .build();
 
-        Trajectory SideSpikeLineForward = drive.trajectoryBuilder(new Pose2d())
-                .forward(10) // Tune Me
-                .build();
-
         Trajectory SpikeLineSeek = drive.trajectoryBuilder(new Pose2d())
                 .forward(-1) // Tune Me
                 .build();
 
-        Trajectory LeftSpikeRecover = drive.trajectoryBuilder(new Pose2d())
+        Trajectory SideSpikeRecover = drive.trajectoryBuilder(new Pose2d())
                 .forward(-8) //180 degree turn right
                 .build();
 
@@ -128,17 +120,8 @@ public class RedTeamFrontAuto extends LinearOpMode
                 .forward(-0.65) // Tune Me
                 .build();
 
-        //May not want to use this, may need to use smaller increments combined with sensor reads to avoid hitting poles
-        Trajectory FrontSideDriveToBoard = drive.trajectoryBuilder(new Pose2d())
-                .forward(100) // Tune Me
-                .build();
-
         Trajectory Backup = drive.trajectoryBuilder(new Pose2d())
                 .forward(-5) // Tune Me
-                .build();
-
-        Trajectory TurnAround = drive.trajectoryBuilder(new Pose2d())
-                .strafeLeft(29) // Tune Me
                 .build();
 
         Trajectory CenterSpikeSlideRight = drive.trajectoryBuilder(new Pose2d())
@@ -150,7 +133,7 @@ public class RedTeamFrontAuto extends LinearOpMode
                 .lineToLinearHeading(new Pose2d(0, 4, Math.toRadians(68)))
                 .build();
 
-        Trajectory CenterSpikeForwardSmall = drive.trajectoryBuilder(new Pose2d())
+        Trajectory ForwardSmall = drive.trajectoryBuilder(new Pose2d())
                 .forward(15)
                 .build();
 
@@ -256,9 +239,8 @@ public class RedTeamFrontAuto extends LinearOpMode
                         //TODO Drop Pixel Code Here
                         drive.followTrajectory(CenterSpikeRecover);
                         drive.followTrajectory(CenterSpikeSlideRight);
-                        //TODO change slide right (line 146)
-                        drive.followTrajectory(CenterSpikeForwardSmall);
-                        drive.followTrajectory(CenterSpikeTurn);
+                        drive.followTrajectory(ForwardSmall);
+                        drive.followTrajectory(RightTurn);
                     } else {
                         drive.followTrajectory(BackwardCreep);
                     }
@@ -270,17 +252,18 @@ public class RedTeamFrontAuto extends LinearOpMode
             {
                 //Move up to SpikeLine, should overshoot a slight amount
                 drive.followTrajectory(SideSpikeForward);
-                drive.followTrajectory(LeftSpikeTurn);
-                drive.followTrajectory(LeftSpikeOvershoot);
+                drive.followTrajectory(LeftTurn);
+                drive.followTrajectory(SideSpikeOvershoot);
 
                 //Red Alliance Code, TODO Implement Blue Alliance Code
                 while (SpikeLineFound == false)
                 {
                     if (colorStarboard.red() > 390 || colorPort.red() > 390) {
                         SpikeLineFound = true;
-                        drive.followTrajectory(LeftSpikeRecover);
-                        drive.followTrajectory(TurnAround);
-                        //Drop Pixel Herej
+                        //TODO Drop Pixel
+                        drive.followTrajectory(SideSpikeRecover);
+                        drive.followTrajectory(RightTurn);
+                        drive.followTrajectory(ForwardSmall);
                     } else {
                         drive.followTrajectory(BackwardCreep);
                     }
@@ -291,8 +274,8 @@ public class RedTeamFrontAuto extends LinearOpMode
             {
                 //Move up to SpikeLine, should overshoot a slight amount
                 drive.followTrajectory(SideSpikeForward);
-                drive.followTrajectory(RightSpikeTurn);
-                drive.followTrajectory(RightSpikeOvershoot);
+                drive.followTrajectory(RightTurn);
+                drive.followTrajectory(SideSpikeOvershoot);
 
 
                 //Red Alliance Code, TODO Implement Blue Alliance Code
@@ -301,11 +284,10 @@ public class RedTeamFrontAuto extends LinearOpMode
                 {
                     if (colorStarboard.red() > 390 || colorPort.red() > 390) {
                         SpikeLineFound = true;
-                        drive.followTrajectory(LeftSpikeRecover);
-                        drive.followTrajectory(CenterSpikeSlideRight);
-                        drive.followTrajectory(CenterSpikeForward);
-                        drive.followTrajectory(RightSpikeSlideLeft);
-                        //Drop Pixel Here
+                        //TODO Drop Pixel
+                        drive.followTrajectory(SideSpikeRecover);
+                        drive.followTrajectory(LeftTurn);
+                        drive.followTrajectory(ForwardSmall);
                     } else {
                         drive.followTrajectory(BackwardCreep);
                     }
