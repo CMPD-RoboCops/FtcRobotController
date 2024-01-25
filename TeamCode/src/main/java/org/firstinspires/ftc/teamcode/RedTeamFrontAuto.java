@@ -89,7 +89,7 @@ public class RedTeamFrontAuto extends LinearOpMode
                 .build();
 
         Trajectory SideSpikeOvershoot = drive.trajectoryBuilder(new Pose2d())
-                .forward(8)
+                .forward(10)
                 .build();
 
         Trajectory SideSpikeForward = drive.trajectoryBuilder(new Pose2d())
@@ -134,7 +134,7 @@ public class RedTeamFrontAuto extends LinearOpMode
                 .build();
 
         Trajectory ForwardSmall = drive.trajectoryBuilder(new Pose2d())
-                .forward(15)
+                .forward(22)
                 .build();
 
         Trajectory AprilTagRight = drive.trajectoryBuilder(new Pose2d())
@@ -288,6 +288,7 @@ public class RedTeamFrontAuto extends LinearOpMode
                         drive.followTrajectory(SideSpikeRecover);
                         drive.followTrajectory(LeftTurn);
                         drive.followTrajectory(ForwardSmall);
+                        drive.followTrajectory(RightTurn);
                     } else {
                         drive.followTrajectory(BackwardCreep);
                     }
