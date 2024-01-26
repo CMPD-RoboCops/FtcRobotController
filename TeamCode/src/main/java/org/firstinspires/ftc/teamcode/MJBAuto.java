@@ -332,7 +332,7 @@ public class MJBAuto extends LinearOpMode
 
             //Get April Tag Telemetry
             //visionPortal.resumeStreaming();
-            //telemetryAprilTag();
+            telemetryAprilTag();
 
             //Stop after you have found April Tag
             //visionPortal.stopStreaming();
@@ -461,7 +461,7 @@ public class MJBAuto extends LinearOpMode
     /**
      * Add telemetry about AprilTag detections.
      */
-    /*
+
     private void telemetryAprilTag() {
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
@@ -486,6 +486,6 @@ public class MJBAuto extends LinearOpMode
         telemetry.addLine("RBE = Range, Bearing & Elevation");
 
     }   // end method telemetryAprilTag()
-*/
+
 
 }  // end of class
