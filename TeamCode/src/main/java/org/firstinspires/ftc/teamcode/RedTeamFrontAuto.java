@@ -313,10 +313,8 @@ public class RedTeamFrontAuto extends LinearOpMode
             telemetry.addData("Starboard range", String.format("%.01f in",starboardDistance));
             telemetry.update();
 
-            while(averageDistance>15)
+            while(averageDistance>30) //TODO TUNE ME
             {
-
-                //TODO Remove Sleep
                 drive.followTrajectory(FastCrawl);
                 portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
                 starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
@@ -327,10 +325,24 @@ public class RedTeamFrontAuto extends LinearOpMode
                 telemetry.addData("Starboard range", String.format("%.01f in",starboardDistance));
                 telemetry.update();
             }
+
+            drive.followTrajectory(LeftSpikeSlideRight);
+
+            while(averageDistance>15)
+            {
+                drive.followTrajectory(FastCrawl);
+                portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
+                starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
+                averageDistance = (portDistance + starboardDistance) / 2;
+
+                //Update Telemetry
+                telemetry.addData("Port range", String.format("%.01f in", portDistance));
+                telemetry.addData("Starboard range", String.format("%.01f in",starboardDistance));
+                telemetry.update();
+            }
+
             while(averageDistance>6)
             {
-
-                //TODO Remove Sleep
                 drive.followTrajectory(MediumCrawl);
                 portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
                 starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
