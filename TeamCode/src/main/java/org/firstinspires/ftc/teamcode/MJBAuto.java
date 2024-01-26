@@ -9,6 +9,7 @@ import com.acmerobotics.roadrunner.util.Angle;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.MovingStatistics;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
@@ -65,6 +66,13 @@ public class MJBAuto extends LinearOpMode
     private ColorSensor colorPort;
     private ColorSensor colorStarboard;
 
+    static final double INCREMENT   = 0.01;     // amount to slew servo each CYCLE_MS cycle
+    static final int    CYCLE_MS    =   50;     // period of each cycle
+    static final double MAX_POS     =  0.45;     // Maximum rotational position
+    static final double MIN_POS     =  0.27;     // Minimum rotational position
+    Servo servo;
+    double position = .38;
+    boolean rampUp = true;
 
     @Override
     public void runOpMode() throws InterruptedException
@@ -83,6 +91,8 @@ public class MJBAuto extends LinearOpMode
         //Setup Sensors
         sensorDistancePort = hardwareMap.get(DistanceSensor.class, "distancesensorport");
         sensorDistanceStarboard = hardwareMap.get(DistanceSensor.class, "distancesensorstarboard");
+
+        servo = hardwareMap.get(Servo.class, "camera servo");
 
         colorPort = hardwareMap.get(ColorSensor.class, "colorsensorport");
         colorStarboard = hardwareMap.get(ColorSensor.class, "colorsensorstarboard");
@@ -155,19 +165,54 @@ public class MJBAuto extends LinearOpMode
                 .lineToLinearHeading(new Pose2d(0, -4, Math.toRadians(-68)))
                 .build();
 
-        Trajectory RightSpikeSlideLeft = drive.trajectoryBuilder(new Pose2d())
-                .lineToLinearHeading(new Pose2d(0, 4, Math.toRadians(68)))
+        Trajectory FastCrawl = drive.trajectoryBuilder(new Pose2d())
+                .forward(10)
+                .build();
+
+        Trajectory MediumCrawl = drive.trajectoryBuilder(new Pose2d())
+                .forward(2.5)
                 .build();
 
         Trajectory RightSpikeForward = drive.trajectoryBuilder(new Pose2d())
                 .forward(15)
                 .build();
 
+        Trajectory RightSpikeSlideLeft = drive.trajectoryBuilder(new Pose2d())
+                .lineToLinearHeading(new Pose2d(0, 6, Math.toRadians(102)))
+                .build();
+
+        Trajectory LeftSpikeSlideRight = drive.trajectoryBuilder(new Pose2d())
+                .lineToLinearHeading(new Pose2d(0, -7.5, Math.toRadians(-127.5)))
+                .build();
+
+
+        Trajectory ForwardSmall = drive.trajectoryBuilder(new Pose2d())
+                .forward(18)
+                .build();
+
+        Trajectory AprilTagRight = drive.trajectoryBuilder(new Pose2d())
+                .lineToLinearHeading(new Pose2d(0, -1, Math.toRadians(-17)))
+                .build();
+
+        Trajectory AprilTagLeft = drive.trajectoryBuilder(new Pose2d())
+                .lineToLinearHeading(new Pose2d(0, 1, Math.toRadians(17)))
+                .build();
+
+        Trajectory ParkSlideRight = drive.trajectoryBuilder(new Pose2d())
+                .lineToLinearHeading(new Pose2d(0, -6, Math.toRadians(-102)))
+                .build();
+
+        Trajectory ParkForward = drive.trajectoryBuilder(new Pose2d())
+                .forward(8)
+                .build();
+
+        Trajectory CenterSpikeSlideRight = drive.trajectoryBuilder(new Pose2d())
+                .lineToLinearHeading(new Pose2d(0, -6, Math.toRadians(-102)))
+                .build();
+
         //Control Structure Variables
-        boolean lineFound = false;
-        String TeamPropPosition = "";
+        int TeamPropPosition = 0;
         boolean SpikeLineFound = false;
-        int DistanceToBoard = 1;
 
         //Debug Code
         //telemetry.addData(">", "Checkpoint #1");
@@ -180,52 +225,46 @@ public class MJBAuto extends LinearOpMode
         {
             telemetryTfod();
 
-            //Debug Code
-            //telemetry.addData(">", "Checkpoint #2");
-            //telemetry.update();
+            servo.setPosition(MAX_POS);
 
             while(tfod.getRecognitions().size()==0)
             {
                 telemetry.addData("Image", tfod.getRecognitions().size());
+                if(rampUp) {
+                    servo.setPosition(MAX_POS);
+                    rampUp = !rampUp;
+                } else {
+                    servo.setPosition(MIN_POS);
+                    rampUp = !rampUp;
+                    sleep(100);
+                }
+                sleep(1200);
             }
 
-            //Debug Code
-            //telemetry.addData(">", "Checkpoint #3");
-            //telemetry.update();
-
-
-            //Team Prop Detection Control Structure
-            if(!lineFound)
+            List<Recognition> currentRecognitions = tfod.getRecognitions();
+            for (Recognition recognition : currentRecognitions)
             {
-                List<Recognition> currentRecognitions = tfod.getRecognitions();
-                for (Recognition recognition : currentRecognitions)
+                double CarX = (recognition.getLeft() + recognition.getRight()) / 2;
+                telemetry.addData("X Position", CarX);
+                if (CarX < 350 && !rampUp)
                 {
-                    double CarX = (recognition.getLeft() + recognition.getRight()) / 2;
-                    telemetry.addData("X Position", CarX);
-                    if (CarX < 250)
-                    {
-                        TeamPropPosition = "Left";
-                        telemetry.addData("Line", TeamPropPosition);
-                        lineFound = true;
-                    }
-                    else if (CarX > 250 && CarX < 500)
-                    {
-                        TeamPropPosition = "Center";
-                        telemetry.addData("Line", TeamPropPosition);
-                        lineFound = true;
-                    }
-                    else if (CarX > 500)
-                    {
-                        TeamPropPosition = "Right";
-                        telemetry.addData("Line", TeamPropPosition);
-                        lineFound = true;
-                    }
-                    else
-                    {
-                        telemetry.addData("Line", "Unknown");
-                        telemetry.update();
-                        lineFound = false;
-                    }
+                    TeamPropPosition = 4;
+                    telemetry.addData("Line", TeamPropPosition);
+                }
+                else if ((CarX > 350 && !rampUp) || (CarX < 180 && rampUp))
+                {
+                    TeamPropPosition = 5;
+                    telemetry.addData("Line", TeamPropPosition);
+                }
+                else if (CarX > 180 && rampUp)
+                {
+                    TeamPropPosition = 6;
+                    telemetry.addData("Line", TeamPropPosition);
+                }
+                else
+                {
+                    telemetry.addData("Line", "Unknown");
+                    telemetry.update();
                 }
             }
 
@@ -234,8 +273,8 @@ public class MJBAuto extends LinearOpMode
             //visionPortal.stopStreaming();
 
 
-            //Go to Correct Spike Line
-            if(TeamPropPosition.equals("Center"))
+            //Go to Correct Spike Line CENTER
+            if(TeamPropPosition == 5)
             {
                 //Move up to SpikeLine, should overshoot a slight amount
                 drive.followTrajectory(CenterSpikeForward);
@@ -255,8 +294,8 @@ public class MJBAuto extends LinearOpMode
                 }
 
             }
-
-            if(TeamPropPosition.equals("Left"))
+            //LEFT
+            if(TeamPropPosition == 4)
             {
                 //Move up to SpikeLine, should overshoot a slight amount
                 drive.followTrajectory(SideSpikeForward);
@@ -276,8 +315,8 @@ public class MJBAuto extends LinearOpMode
                     }
                 }
             }
-
-            if(TeamPropPosition.equals("Right"))
+            //RIGHT
+            if(TeamPropPosition == 6)
             {
                 //Move up to SpikeLine, should overshoot a slight amount
                 drive.followTrajectory(SideSpikeForward);
@@ -306,19 +345,12 @@ public class MJBAuto extends LinearOpMode
             double starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
             double averageDistance = (portDistance + starboardDistance) / 2;
 
-            Trajectory FastCrawl = drive.trajectoryBuilder(new Pose2d())
-                    .forward(5)
-                    .build();
-
             telemetry.addData("Port range", String.format("%.01f in", portDistance));
             telemetry.addData("Starboard range", String.format("%.01f in",starboardDistance));
             telemetry.update();
 
-            while(averageDistance>14)
+            while(averageDistance>30) //TODO TUNE ME
             {
-
-                //TODO Remove Sleep
-                sleep(1000);
                 drive.followTrajectory(FastCrawl);
                 portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
                 starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
@@ -330,19 +362,67 @@ public class MJBAuto extends LinearOpMode
                 telemetry.update();
             }
 
+            drive.followTrajectory(LeftSpikeSlideRight);
+
+            while(averageDistance>15)
+            {
+                drive.followTrajectory(FastCrawl);
+                portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
+                starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
+                averageDistance = (portDistance + starboardDistance) / 2;
+
+                //Update Telemetry
+                telemetry.addData("Port range", String.format("%.01f in", portDistance));
+                telemetry.addData("Starboard range", String.format("%.01f in",starboardDistance));
+                telemetry.update();
+            }
+
+            while(averageDistance>6)
+            {
+                drive.followTrajectory(MediumCrawl);
+                portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
+                starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
+                averageDistance = (portDistance + starboardDistance) / 2;
+
+                //Update Telemetry
+                telemetry.addData("Port range", String.format("%.01f in", portDistance));
+                telemetry.addData("Starboard range", String.format("%.01f in",starboardDistance));
+                telemetry.update();
+            }
+
             //Get April Tag Telemetry
-            //visionPortal.resumeStreaming();
-            //telemetryAprilTag();
 
+            boolean TagFound = false;
+            while(!TagFound) {
+                telemetryAprilTag();
+                telemetry.update();
+                for (AprilTagDetection detection : aprilTag.getDetections()) {
+                    if (detection.metadata != null) {
+                        if (detection.id > TeamPropPosition) {
+                            drive.followTrajectory(AprilTagLeft);
+                            break;
+                        } else if (detection.id < TeamPropPosition) {
+                            drive.followTrajectory(AprilTagRight);
+                            break;
+                        } else if (detection.id == TeamPropPosition) {
+                            TagFound = true;
+                            break;
+                        }
+                    }
+                }
+            }
             //Stop after you have found April Tag
-            //visionPortal.stopStreaming();
+            visionPortal.stopStreaming();
 
-            //
+            if(TeamPropPosition == 4) {
+                drive.followTrajectory(ParkSlideRight);
+            } else if(TeamPropPosition == 5) {
+                drive.followTrajectory(ParkSlideRight);
+            } else if(TeamPropPosition == 6) {
+                drive.followTrajectory(CenterSpikeSlideRight);
+            }
 
-
-
-
-
+            drive.followTrajectory(ParkForward);
 
         }
 
@@ -461,7 +541,7 @@ public class MJBAuto extends LinearOpMode
     /**
      * Add telemetry about AprilTag detections.
      */
-    /*
+
     private void telemetryAprilTag() {
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
@@ -486,6 +566,6 @@ public class MJBAuto extends LinearOpMode
         telemetry.addLine("RBE = Range, Bearing & Elevation");
 
     }   // end method telemetryAprilTag()
-*/
+
 
 }  // end of class
