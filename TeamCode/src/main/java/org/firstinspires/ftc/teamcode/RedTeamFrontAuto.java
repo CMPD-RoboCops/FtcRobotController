@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -51,6 +52,14 @@ public class RedTeamFrontAuto extends LinearOpMode
     private ColorSensor colorPort;
     private ColorSensor colorStarboard;
 
+    static final double INCREMENT   = 0.01;     // amount to slew servo each CYCLE_MS cycle
+    static final int    CYCLE_MS    =   50;     // period of each cycle
+    static final double MAX_POS     =  0.45;     // Maximum rotational position
+    static final double MIN_POS     =  0.27;     // Minimum rotational position
+    Servo servo;
+    double position = .38;
+    boolean rampUp = true;
+
 
     @Override
     public void runOpMode() throws InterruptedException
@@ -69,6 +78,8 @@ public class RedTeamFrontAuto extends LinearOpMode
         //Setup Sensors
         sensorDistancePort = hardwareMap.get(DistanceSensor.class, "distancesensorport");
         sensorDistanceStarboard = hardwareMap.get(DistanceSensor.class, "distancesensorstarboard");
+
+        servo = hardwareMap.get(Servo.class, "camera servo");
 
         colorPort = hardwareMap.get(ColorSensor.class, "colorsensorport");
         colorStarboard = hardwareMap.get(ColorSensor.class, "colorsensorstarboard");
@@ -157,10 +168,8 @@ public class RedTeamFrontAuto extends LinearOpMode
                 .build();
 
         //Control Structure Variables
-        boolean lineFound = false;
         int TeamPropPosition = 0;
         boolean SpikeLineFound = false;
-        int DistanceToBoard = 1;
 
         //Debug Code
         //telemetry.addData(">", "Checkpoint #1");
@@ -173,52 +182,46 @@ public class RedTeamFrontAuto extends LinearOpMode
         {
             telemetryTfod();
 
-            //Debug Code
-            //telemetry.addData(">", "Checkpoint #2");
-            //telemetry.update();
+            servo.setPosition(MAX_POS);
 
             while(tfod.getRecognitions().size()==0)
             {
                 telemetry.addData("Image", tfod.getRecognitions().size());
+                if(rampUp) {
+                    servo.setPosition(MAX_POS);
+                    rampUp = !rampUp;
+                } else {
+                    servo.setPosition(MIN_POS);
+                    rampUp = !rampUp;
+                    sleep(100);
+                }
+                sleep(1200);
             }
 
-            //Debug Code
-            //telemetry.addData(">", "Checkpoint #3");
-            //telemetry.update();
-
-
-            //Team Prop Detection Control Structure
-            if(!lineFound)
+            List<Recognition> currentRecognitions = tfod.getRecognitions();
+            for (Recognition recognition : currentRecognitions)
             {
-                List<Recognition> currentRecognitions = tfod.getRecognitions();
-                for (Recognition recognition : currentRecognitions)
+                double CarX = (recognition.getLeft() + recognition.getRight()) / 2;
+                telemetry.addData("X Position", CarX);
+                if (CarX < 350 && !rampUp)
                 {
-                    double CarX = (recognition.getLeft() + recognition.getRight()) / 2;
-                    telemetry.addData("X Position", CarX);
-                    if (CarX < 250)
-                    {
-                        TeamPropPosition = 4;
-                        telemetry.addData("Line", TeamPropPosition);
-                        lineFound = true;
-                    }
-                    else if (CarX > 250 && CarX < 500)
-                    {
-                        TeamPropPosition = 5;
-                        telemetry.addData("Line", TeamPropPosition);
-                        lineFound = true;
-                    }
-                    else if (CarX > 500)
-                    {
-                        TeamPropPosition = 6;
-                        telemetry.addData("Line", TeamPropPosition);
-                        lineFound = true;
-                    }
-                    else
-                    {
-                        telemetry.addData("Line", "Unknown");
-                        telemetry.update();
-                        lineFound = false;
-                    }
+                    TeamPropPosition = 4;
+                    telemetry.addData("Line", TeamPropPosition);
+                }
+                else if ((CarX > 350 && !rampUp) || (CarX < 180 && rampUp))
+                {
+                    TeamPropPosition = 5;
+                    telemetry.addData("Line", TeamPropPosition);
+                }
+                else if (CarX > 180 && rampUp)
+                {
+                    TeamPropPosition = 6;
+                    telemetry.addData("Line", TeamPropPosition);
+                }
+                else
+                {
+                    telemetry.addData("Line", "Unknown");
+                    telemetry.update();
                 }
             }
 
