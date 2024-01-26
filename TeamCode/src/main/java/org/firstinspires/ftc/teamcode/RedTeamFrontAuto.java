@@ -85,15 +85,15 @@ public class RedTeamFrontAuto extends LinearOpMode
                 .build();
 
         Trajectory TurnAround = drive.trajectoryBuilder(new Pose2d())
-                .strafeLeft(29) // Tune Me
+                .strafeLeft(32.5) // Tune Me
                 .build();
 
         Trajectory SideSpikeOvershoot = drive.trajectoryBuilder(new Pose2d())
-                .forward(10)
+                .forward(6)
                 .build();
 
         Trajectory SideSpikeForward = drive.trajectoryBuilder(new Pose2d())
-                .forward(18) // Tune Me
+                .forward(19) // Tune Me
                 .build();
 
         Trajectory CenterSpikeForward = drive.trajectoryBuilder(new Pose2d())
@@ -105,7 +105,7 @@ public class RedTeamFrontAuto extends LinearOpMode
                 .build();
 
         Trajectory SideSpikeRecover = drive.trajectoryBuilder(new Pose2d())
-                .forward(-8) //180 degree turn right
+                .forward(-6) //180 degree turn right
                 .build();
 
         Trajectory CenterSpikeRecover = drive.trajectoryBuilder(new Pose2d())
@@ -126,15 +126,18 @@ public class RedTeamFrontAuto extends LinearOpMode
 
         Trajectory CenterSpikeSlideRight = drive.trajectoryBuilder(new Pose2d())
                 .lineToLinearHeading(new Pose2d(0, -6, Math.toRadians(-102)))
-                //TODO change above math to radians value, the y was changed from -4.5 to -9, change the radians to fit with that :)
                 .build();
 
         Trajectory RightSpikeSlideLeft = drive.trajectoryBuilder(new Pose2d())
-                .lineToLinearHeading(new Pose2d(0, 4, Math.toRadians(68)))
+                .lineToLinearHeading(new Pose2d(0, 6, Math.toRadians(102)))
+                .build();
+
+        Trajectory LeftSpikeSlideRight = drive.trajectoryBuilder(new Pose2d())
+                .lineToLinearHeading(new Pose2d(0, -7.5, Math.toRadians(-127.5)))
                 .build();
 
         Trajectory ForwardSmall = drive.trajectoryBuilder(new Pose2d())
-                .forward(22)
+                .forward(18)
                 .build();
 
         Trajectory AprilTagRight = drive.trajectoryBuilder(new Pose2d())
@@ -262,8 +265,8 @@ public class RedTeamFrontAuto extends LinearOpMode
                         SpikeLineFound = true;
                         //TODO Drop Pixel
                         drive.followTrajectory(SideSpikeRecover);
-                        drive.followTrajectory(RightTurn);
-                        drive.followTrajectory(ForwardSmall);
+                        drive.followTrajectory(LeftSpikeSlideRight);
+                        drive.followTrajectory(TurnAround);
                     } else {
                         drive.followTrajectory(BackwardCreep);
                     }
@@ -286,9 +289,7 @@ public class RedTeamFrontAuto extends LinearOpMode
                         SpikeLineFound = true;
                         //TODO Drop Pixel
                         drive.followTrajectory(SideSpikeRecover);
-                        drive.followTrajectory(LeftTurn);
-                        drive.followTrajectory(ForwardSmall);
-                        drive.followTrajectory(RightTurn);
+                        drive.followTrajectory(RightSpikeSlideLeft);
                     } else {
                         drive.followTrajectory(BackwardCreep);
                     }
