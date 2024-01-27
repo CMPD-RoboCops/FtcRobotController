@@ -32,7 +32,7 @@ public class RedTeamFrontParkAuto extends LinearOpMode
         drive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         Trajectory Forward = drive.trajectoryBuilder(new Pose2d())
-                .forward(55)
+                .forward(59)
                 .build();
 
         Trajectory Backward = drive.trajectoryBuilder(new Pose2d())
@@ -40,7 +40,7 @@ public class RedTeamFrontParkAuto extends LinearOpMode
                 .build();
 
         Trajectory StrafeLeft = drive.trajectoryBuilder(new Pose2d())
-                .strafeLeft(6)
+                .strafeLeft(10)
                 .build();
 
         waitForStart();
@@ -48,7 +48,7 @@ public class RedTeamFrontParkAuto extends LinearOpMode
         if (opModeIsActive())
         {
             drive.followTrajectory(Forward);
-            drive.turn(Math.toRadians(92));
+            drive.turn(Math.toRadians(100));
             drive.followTrajectory(Backward);
             drive.followTrajectory(StrafeLeft);
         }

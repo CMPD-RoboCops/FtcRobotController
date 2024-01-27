@@ -75,7 +75,7 @@ public class GTBTeleOp24 extends LinearOpMode {
     private DcMotor rightback = null;
     private Servo portarmservo = null;
     private Servo starboardarmservo = null;
-    private Servo portbridgeservo = null; //Port drone service
+    private Servo portbridgeservo = null; //Port bridge service
     private Servo starboardbridgeservo = null; //Starboard drone service
     private Servo droneservo = null; //Drone Servo
     private Servo portclawservo = null; //Port claw servo
@@ -85,30 +85,52 @@ public class GTBTeleOp24 extends LinearOpMode {
     private DcMotor armleft = null; //Arm motor left
 
 
+    //Arm Position Variables
+    double armmax = 8;
+    double armposition=0;
+
+    //Servo General Variables
+    static final int    CYCLE_MS    =   50;     // period of each cycle
+    static final double INCREMENT   = 0.01;     // amount to slew servo each CYCLE_MS cycle
+
+    //Drone Servo Position Variables
+    double DroneStartPosition = 0;
+    double DroneCurrentPosition = 0;
+    double DroneLaunchPosition=1;
+
+
+
     @Override
     public void runOpMode() {
 
-        // Initialize the hardware variables. Note that the strings used here must correspond
-        // to the names assigned during the robot configuration step on the DS or RC devices.
+        // Initialize Motors
         frontleft  = hardwareMap.get(DcMotor.class, "front left");
         backleft  = hardwareMap.get(DcMotor.class, "back left");
         rightfront = hardwareMap.get(DcMotor.class, "right front");
         rightback = hardwareMap.get(DcMotor.class, "right back");
+        intakemotor = hardwareMap.get(DcMotor.class, "intake motor");
+        armright = hardwareMap.get(DcMotor.class, "arm right");
+        armleft = hardwareMap.get(DcMotor.class, "arm left");
 
-        // ########################################################################################
-        // !!!            IMPORTANT Drive Information. Test your motor directions.            !!!!!
-        // ########################################################################################
-        // Most robots need the motors on one side to be reversed to drive forward.
-        // The motor reversals shown here are for a "direct drive" robot (the wheels turn the same direction as the motor shaft)
-        // If your robot has additional gear reductions or uses a right-angled drive, it's important to ensure
-        // that your motors are turning in the correct direction.  So, start out with the reversals here, BUT
-        // when you first test your robot, push the left joystick forward and observe the direction the wheels turn.
-        // Reverse the direction (flip FORWARD <-> REVERSE ) of any wheel that runs backward
-        // Keep testing until ALL the wheels move the robot forward when you push the left joystick forward.
+        //Initialize Servos
+        //droneservo = hardwareMap.get(Servo.class, "drone servo");
+        droneservo = hardwareMap.get(Servo.class, "port arm servo");
+        starboardarmservo = hardwareMap.get(Servo.class, "starboard arm servo");
+        starboardbridgeservo = hardwareMap.get(Servo.class, "starboard bridge servo");
+        //portarmservo = hardwareMap.get(Servo.class, "port arm servo");
+        portbridgeservo = hardwareMap.get(Servo.class, "port bridge servo");
+        starboardbridgeservo = hardwareMap.get(Servo.class, "starboard bridge servo");
+        portclawservo = hardwareMap.get(Servo.class, "port claw servo");
+
+        // Set Motor Directions
         frontleft.setDirection(DcMotor.Direction.REVERSE);
         backleft.setDirection(DcMotor.Direction.REVERSE);
         rightfront.setDirection(DcMotor.Direction.FORWARD);
         rightback.setDirection(DcMotor.Direction.FORWARD);
+        intakemotor.setDirection(DcMotor.Direction.FORWARD);
+        armleft.setDirection(DcMotor.Direction.REVERSE);
+        armright.setDirection(DcMotor.Direction.REVERSE);
+
 
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
@@ -121,6 +143,10 @@ public class GTBTeleOp24 extends LinearOpMode {
         while (opModeIsActive()) {
             double max;
 
+            //Set Motor Power Variables
+            double intakePower = 0.1;
+            double armPower = 1;
+
             // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
             double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
             double lateral =  gamepad1.left_stick_x;
@@ -130,13 +156,65 @@ public class GTBTeleOp24 extends LinearOpMode {
             boolean portbridgeservo = gamepad1.a;
             boolean starboardbridgeservo = gamepad1.a;
             boolean portarmservo = gamepad1.a;
-            boolean starboardarmservo = gamepad1.a;
-            boolean droneservo = gamepad1.b;
-            boolean portclawservo = gamepad1.x;
+            //boolean starboardarmservo = gamepad1.a;
+            //boolean droneservo = gamepad1.dpad_up;
             boolean starboardclawservo = gamepad1.x;
-            boolean intakemotor = gamepad1.y;
+            //boolean intakemotor = gamepad1.b;
             double armin = -gamepad1.left_trigger;
             double armout = gamepad1.right_trigger;
+
+            //Arm Extend
+            if(gamepad1.x)
+            {
+              while(armposition<armmax)
+              {
+                  armleft.setPower(-armPower);
+                  armright.setPower(armPower);
+                  sleep(100);
+                  armleft.setPower(0);
+                  armright.setPower(0);
+                  armposition++;
+              }
+                armleft.setPower(-0.1);
+                armright.setPower(0.1);
+            }
+
+            //Arm Retract
+            if(gamepad1.y)
+            {
+                while(armposition>0)
+                {
+                    armleft.setPower(armPower);
+                    armright.setPower(-armPower);
+                    sleep(100);
+                    armleft.setPower(0);
+                    armright.setPower(0);
+                    armposition--;
+                }
+                armleft.setPower(0);
+                armright.setPower(0);
+            }
+
+            //Drone Launch
+            if(gamepad1.dpad_up)
+            {
+                while(DroneCurrentPosition<DroneLaunchPosition)
+                {
+                    droneservo.setPosition(DroneCurrentPosition);
+                    DroneCurrentPosition=DroneCurrentPosition+0.01;
+                }
+            }
+
+            //Intake Motor Temp Code
+            if (gamepad1.b) {
+                intakePower = 1.0;
+            } else if (gamepad1.a) {
+                intakePower = -1.0;
+            } else {
+                intakePower = 0.0;
+            }
+
+            intakemotor.setPower(intakePower);
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
@@ -175,18 +253,18 @@ public class GTBTeleOp24 extends LinearOpMode {
             rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
             */
 
+
             // Send calculated power to wheels
             frontleft.setPower(leftFrontPower);
             rightfront.setPower(rightFrontPower);
             backleft.setPower(leftBackPower);
             rightback.setPower(rightBackPower);
 
-
-
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("frontleft/Right", "%4.2f, %4.2f", leftFrontPower, rightFrontPower);
             telemetry.addData("Back  left/Right", "%4.2f, %4.2f", leftBackPower, rightBackPower);
+            //telemetry.addData("Arm Position/Arm Max","%4.2f, %4.2f", armposition, armmax);
             telemetry.update();
         }
     }}
