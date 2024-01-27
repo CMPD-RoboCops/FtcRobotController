@@ -125,13 +125,20 @@ public class GTBTeleOp24 extends LinearOpMode {
             double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
             double lateral =  gamepad1.left_stick_x;
             double yaw     =  gamepad1.right_stick_x;
+
+            // Button Mapping
             double portbridgeservo = gamepad1.a;
             double starboardbridgeservo = gamepad1.a;
             double portarmservo = gamepad1.a;
-            double
-
-            // Button Mapping
-
+            double starboardarmservo = gamepad1.a;
+            double droneservo = gamepad1.b;
+            double portclawservo = gamepad1.x;
+            double starboardclawservo = gamepad1.x;
+            double intakemotor = gamepad1.y;
+            double armright = -gamepad1.left_trigger;
+            double armleft = -gamepad1.left_trigger;
+            double armright = gamepad1.right_trigger;
+            double armleft = gamepad1.right_trigger;
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
