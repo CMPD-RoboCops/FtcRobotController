@@ -63,7 +63,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
  */
 
-@TeleOp(name="1 - Basic: Omni Linear OpMode", group="Linear OpMode")
+@TeleOp(name="GTBTeleOp24", group="Linear OpMode")
 //@Disabled
 public class GTBTeleOp24 extends LinearOpMode {
 
@@ -127,18 +127,16 @@ public class GTBTeleOp24 extends LinearOpMode {
             double yaw     =  gamepad1.right_stick_x;
 
             // Button Mapping
-            double portbridgeservo = gamepad1.a;
-            double starboardbridgeservo = gamepad1.a;
-            double portarmservo = gamepad1.a;
-            double starboardarmservo = gamepad1.a;
-            double droneservo = gamepad1.b;
-            double portclawservo = gamepad1.x;
-            double starboardclawservo = gamepad1.x;
-            double intakemotor = gamepad1.y;
-            double armright = -gamepad1.left_trigger;
-            double armleft = -gamepad1.left_trigger;
-            double armright = gamepad1.right_trigger;
-            double armleft = gamepad1.right_trigger;
+            boolean portbridgeservo = gamepad1.a;
+            boolean starboardbridgeservo = gamepad1.a;
+            boolean portarmservo = gamepad1.a;
+            boolean starboardarmservo = gamepad1.a;
+            boolean droneservo = gamepad1.b;
+            boolean portclawservo = gamepad1.x;
+            boolean starboardclawservo = gamepad1.x;
+            boolean intakemotor = gamepad1.y;
+            double armin = -gamepad1.left_trigger;
+            double armout = gamepad1.right_trigger;
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
