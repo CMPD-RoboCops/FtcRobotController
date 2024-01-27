@@ -93,20 +93,12 @@ public class SampleMecanumDrive extends MecanumDrive {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         }
 
-        // TODO: adjust the names of the following hardware devices to match your configuration
-        /*imu = hardwareMap.get(IMU.class, "imu");
-        IMU.Parameters parameters = new IMU.Parameters(new RevHubOrientationOnRobot(
-                DriveConstants.LOGO_FACING_DIR, DriveConstants.USB_FACING_DIR));
-        imu.initialize(parameters);*/
+        // TODO: adjust the names of the following hardware devices to match your configuratio
 
         leftFront = hardwareMap.get(DcMotorEx.class, "front left");
         leftRear = hardwareMap.get(DcMotorEx.class, "back left");
         rightRear = hardwareMap.get(DcMotorEx.class, "right back");
         rightFront = hardwareMap.get(DcMotorEx.class, "right front");
-
-        leftFront.setDirection(DcMotor.Direction.REVERSE);
-        rightRear.setDirection(DcMotor.Direction.REVERSE);
-
 
         motors = Arrays.asList(leftFront, leftRear, rightRear, rightFront);
 
@@ -127,14 +119,18 @@ public class SampleMecanumDrive extends MecanumDrive {
         }
 
         // TODO: reverse any motors using DcMotor.setDirection()
-        //leftFront.setDirection(DcMotor.Direction.REVERSE);
-        //leftRear.setDirection(DcMotor.Direction.REVERSE);
+        leftFront.setDirection(DcMotor.Direction.REVERSE); // add if needed
+        leftRear.setDirection(DcMotor.Direction.REVERSE); // add if needed
+        rightFront.setDirection(DcMotor.Direction.FORWARD); // add if needed
+        rightRear.setDirection(DcMotor.Direction.FORWARD); // add if needed
+
 
         List<Integer> lastTrackingEncPositions = new ArrayList<>();
         List<Integer> lastTrackingEncVels = new ArrayList<>();
 
         // TODO: if desired, use setLocalizer() to change the localization method
-        //Coach Mike uncommented this
+        // setLocalizer(new StandardTrackingWheelLocalizer(hardwareMap, lastTrackingEncPositions, lastTrackingEncVels));
+
         setLocalizer(new StandardTrackingWheelLocalizer(hardwareMap, lastTrackingEncPositions, lastTrackingEncVels));
 
         trajectorySequenceRunner = new TrajectorySequenceRunner(
@@ -297,14 +293,12 @@ public class SampleMecanumDrive extends MecanumDrive {
 
     @Override
     public double getRawExternalHeading() {
-        //return imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);
         return 0;
     }
 
     @Override
     public Double getExternalHeadingVelocity() {
-        //return (double) imu.getRobotAngularVelocity(AngleUnit.RADIANS).zRotationRate;
-        return (double) 0;
+        return 0.0;
     }
 
     public static TrajectoryVelocityConstraint getVelocityConstraint(double maxVel, double maxAngularVel, double trackWidth) {

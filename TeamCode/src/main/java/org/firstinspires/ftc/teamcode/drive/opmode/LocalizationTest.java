@@ -4,12 +4,8 @@ import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.acmerobotics.roadrunner.geometry.Vector2d;
 
 import org.firstinspires.ftc.teamcode.drive.SampleMecanumDrive;
-
-//New Imports
-import com.acmerobotics.roadrunner.trajectory.Trajectory;
 
 /**
  * This is a simple teleop routine for testing localization. Drive the robot around like a normal
@@ -28,33 +24,8 @@ public class LocalizationTest extends LinearOpMode {
 
         waitForStart();
 
-
-        Trajectory traj1 = drive.trajectoryBuilder(new Pose2d())
-                //.strafeRight(18) //90 degree turn right
-                .strafeLeft(35) //180 degree turn left
-                .build();
-
-        Trajectory traj2 = drive.trajectoryBuilder(traj1.end())
-                .forward(10)
-                .build();
-
-        Trajectory traj3 = drive.trajectoryBuilder(traj1.end())
-                .forward(8)
-                .build();
-
-        //Pose2d myPose = new Pose2d(10, -5, Math.toRadians(90));
-
-        Trajectory traj4 = drive.trajectoryBuilder(new Pose2d())
-                .splineTo(new Vector2d(0, 2), -165)
-                .build();
-
-        //drive.followTrajectory(traj2);
-        //drive.followTrajectory(traj1);
-        //drive.followTrajectory(traj3);
-        drive.followTrajectory(traj4);
-
         while (!isStopRequested()) {
-            /*drive.setWeightedDrivePower(
+            drive.setWeightedDrivePower(
                     new Pose2d(
                             -gamepad1.left_stick_y,
                             -gamepad1.left_stick_x,
@@ -62,15 +33,13 @@ public class LocalizationTest extends LinearOpMode {
                     )
             );
 
-            drive.update();*/
+            drive.update();
 
             Pose2d poseEstimate = drive.getPoseEstimate();
             telemetry.addData("x", poseEstimate.getX());
             telemetry.addData("y", poseEstimate.getY());
             telemetry.addData("heading", poseEstimate.getHeading());
             telemetry.update();
-
-
         }
     }
 }
