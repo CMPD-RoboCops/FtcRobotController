@@ -31,6 +31,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -113,13 +114,12 @@ public class GTBTeleOp24 extends LinearOpMode {
         armleft = hardwareMap.get(DcMotor.class, "arm left");
 
         //Initialize Servos
-        //droneservo = hardwareMap.get(Servo.class, "drone servo");
-        droneservo = hardwareMap.get(Servo.class, "port arm servo");
+        droneservo = hardwareMap.get(Servo.class, "drone servo");
         starboardarmservo = hardwareMap.get(Servo.class, "starboard arm servo");
         starboardbridgeservo = hardwareMap.get(Servo.class, "starboard bridge servo");
-        //portarmservo = hardwareMap.get(Servo.class, "port arm servo");
+        portarmservo = hardwareMap.get(Servo.class, "port arm servo");
         portbridgeservo = hardwareMap.get(Servo.class, "port bridge servo");
-        starboardbridgeservo = hardwareMap.get(Servo.class, "starboard bridge servo");
+        starboardclawservo = hardwareMap.get(Servo.class, "starboard claw servo");
         portclawservo = hardwareMap.get(Servo.class, "port claw servo");
 
         // Set Motor Directions
@@ -131,7 +131,6 @@ public class GTBTeleOp24 extends LinearOpMode {
         armleft.setDirection(DcMotor.Direction.REVERSE);
         armright.setDirection(DcMotor.Direction.REVERSE);
 
-
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -142,6 +141,8 @@ public class GTBTeleOp24 extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             double max;
+
+
 
             //Set Motor Power Variables
             double intakePower = 0.1;
