@@ -31,6 +31,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -76,8 +77,8 @@ public class GTBTeleOp24 extends LinearOpMode {
     private DcMotor rightback = null;
     private Servo portarmservo = null;
     private Servo starboardarmservo = null;
-    private Servo portbridgeservo = null; //Port bridge service
-    private Servo starboardbridgeservo = null; //Starboard drone service
+    private CRServo portbridgeservo = null; //Port bridge service
+    private CRServo starboardbridgeservo = null; //Starboard drone service
     private Servo droneservo = null; //Drone Servo
     private Servo portclawservo = null; //Port claw servo
     private Servo starboardclawservo = null; //Starboard claw servo
@@ -116,9 +117,9 @@ public class GTBTeleOp24 extends LinearOpMode {
         //Initialize Servos
         droneservo = hardwareMap.get(Servo.class, "drone servo");
         starboardarmservo = hardwareMap.get(Servo.class, "starboard arm servo");
-        starboardbridgeservo = hardwareMap.get(Servo.class, "starboard bridge servo");
+        starboardbridgeservo = hardwareMap.get(CRServo.class, "starboard bridge servo");
         portarmservo = hardwareMap.get(Servo.class, "port arm servo");
-        portbridgeservo = hardwareMap.get(Servo.class, "port bridge servo");
+        portbridgeservo = hardwareMap.get(CRServo.class, "port bridge servo");
         starboardclawservo = hardwareMap.get(Servo.class, "starboard claw servo");
         portclawservo = hardwareMap.get(Servo.class, "port claw servo");
 
@@ -154,15 +155,24 @@ public class GTBTeleOp24 extends LinearOpMode {
             double yaw     =  gamepad1.right_stick_x;
 
             // Button Mapping
-            boolean portbridgeservo = gamepad1.a;
-            boolean starboardbridgeservo = gamepad1.a;
-            boolean portarmservo = gamepad1.a;
+            //boolean portarmservo = gamepad1.a;
             //boolean starboardarmservo = gamepad1.a;
             //boolean droneservo = gamepad1.dpad_up;
             boolean starboardclawservo = gamepad1.x;
             //boolean intakemotor = gamepad1.b;
             double armin = -gamepad1.left_trigger;
             double armout = gamepad1.right_trigger;
+
+            if(gamepad2.a) {
+                starboardbridgeservo.setPower(-0.75);
+                portbridgeservo.setPower(0.75);
+            } else if(gamepad2.b) {
+                starboardbridgeservo.setPower(0.75);
+                portbridgeservo.setPower(-0.75);
+            } else {
+                starboardbridgeservo.setPower(0);
+                portbridgeservo.setPower(0);
+            }
 
             //Arm Extend
             if(gamepad1.x)
