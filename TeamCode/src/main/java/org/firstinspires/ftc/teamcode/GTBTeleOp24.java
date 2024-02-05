@@ -75,8 +75,8 @@ public class GTBTeleOp24 extends LinearOpMode {
     private DcMotor backleft = null;
     private DcMotor rightfront = null;
     private DcMotor rightback = null;
-    private Servo portarmservo = null;
-    private Servo starboardarmservo = null;
+    private CRServo portarmservo = null;
+    private CRServo starboardarmservo = null;
     private CRServo portbridgeservo = null; //Port bridge service
     private CRServo starboardbridgeservo = null; //Starboard drone service
     private Servo droneservo = null; //Drone Servo
@@ -116,9 +116,9 @@ public class GTBTeleOp24 extends LinearOpMode {
 
         //Initialize Servos
         droneservo = hardwareMap.get(Servo.class, "drone servo");
-        starboardarmservo = hardwareMap.get(Servo.class, "starboard arm servo");
+        starboardarmservo = hardwareMap.get(CRServo.class, "starboard arm servo");
         starboardbridgeservo = hardwareMap.get(CRServo.class, "starboard bridge servo");
-        portarmservo = hardwareMap.get(Servo.class, "port arm servo");
+        portarmservo = hardwareMap.get(CRServo.class, "port arm servo");
         portbridgeservo = hardwareMap.get(CRServo.class, "port bridge servo");
         starboardclawservo = hardwareMap.get(Servo.class, "starboard claw servo");
         portclawservo = hardwareMap.get(Servo.class, "port claw servo");
@@ -164,12 +164,22 @@ public class GTBTeleOp24 extends LinearOpMode {
             double armout = gamepad1.right_trigger;
 
             if(gamepad2.a) {
-                starboardbridgeservo.setPower(-0.75);
-                portbridgeservo.setPower(0.75);
-            } else if(gamepad2.b) {
                 starboardbridgeservo.setPower(0.75);
                 portbridgeservo.setPower(-0.75);
+                sleep(500);
+                starboardarmservo.setPower(-0.75);
+                portarmservo.setPower(0.75);
+                sleep(2000);
+            } else if(gamepad2.b) {
+                starboardarmservo.setPower(0.75);
+                portarmservo.setPower(-0.75);
+                sleep(500);
+                starboardbridgeservo.setPower(-0.75);
+                portbridgeservo.setPower(0.75);
+
             } else {
+                starboardarmservo.setPower(0);
+                portarmservo.setPower(0);
                 starboardbridgeservo.setPower(0);
                 portbridgeservo.setPower(0);
             }
