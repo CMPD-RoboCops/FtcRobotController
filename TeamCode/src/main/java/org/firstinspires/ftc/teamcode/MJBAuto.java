@@ -23,6 +23,7 @@ import com.acmerobotics.roadrunner.trajectory.Trajectory;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
+import org.firstinspires.ftc.teamcode.trajectorysequence.TrajectorySequence;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 
@@ -40,7 +41,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import java.util.List;
 
 @Config
-@Autonomous(name= "MJB Autonomous Mode",group = "drive")
+@Autonomous(name= "Red Back Auto",group = "drive")
 public class MJBAuto extends LinearOpMode
 {
     //TensorFlow Setup
@@ -100,114 +101,45 @@ public class MJBAuto extends LinearOpMode
         Rev2mDistanceSensor sensorTimeOfFlightStarboard = (Rev2mDistanceSensor) sensorDistanceStarboard;
 
         //Define Your Trajectories Here
-        Trajectory RightSpikeTurn = drive.trajectoryBuilder(new Pose2d())
-                .strafeRight(15) //90 degree turn right
+        //TODO TUNE ALL
+        //TODO CREATE TRAJECTORIES FOR APRIL TAGS AND PARKING
+        //NOTE Using Trajectory Sequence now.
+        Pose2d startPose = new Pose2d(0, 0, 0);
+
+        drive.setPoseEstimate(startPose);
+
+        TrajectorySequence ToCenterSpike = drive.trajectorySequenceBuilder(startPose)
+                .forward(36.5) // Tune Me
                 .build();
 
-        Trajectory LeftSpikeTurn = drive.trajectoryBuilder(new Pose2d())
-                .strafeLeft(14.7) //90 degree turn left
+        TrajectorySequence CenterSpikeToBoard = drive.trajectorySequenceBuilder(startPose)
+                .back(6)
+                .turn(-110)
+                .forward(35)
                 .build();
 
-        Trajectory CenterSpikeTurn = drive.trajectoryBuilder(new Pose2d())
-                .strafeLeft(16.2) //90 degree turn left
+        TrajectorySequence ToLeftSpike = drive.trajectorySequenceBuilder(startPose)
+                .forward(32)
+                .turn(110)
+                .forward(12.5)
                 .build();
 
-        Trajectory SideSpikeOvershoot = drive.trajectoryBuilder(new Pose2d())
-                .forward(8) //90 degree turn left
+        TrajectorySequence LeftSpikeToBoard = drive.trajectorySequenceBuilder(startPose)
+                .back(20)
+                .turn(-220)
+                .forward(35)
                 .build();
 
-        Trajectory SideSpikeForward = drive.trajectoryBuilder(new Pose2d())
-                .forward(18) // Tune Me
+        TrajectorySequence ToRightSpike = drive.trajectorySequenceBuilder(new Pose2d())
+                .strafeTo(new Vector2d(27, -13)) // Tune Me
                 .build();
 
-        Trajectory CenterSpikeForward = drive.trajectoryBuilder(new Pose2d())
-                .forward(24) // Tune Me
-                .build();
-
-        Trajectory SideSpikeLineForward = drive.trajectoryBuilder(new Pose2d())
-                .forward(10) // Tune Me
-                .build();
-
-        Trajectory SpikeLineSeek = drive.trajectoryBuilder(new Pose2d())
-                .forward(-1) // Tune Me
-                .build();
-
-        Trajectory LeftSpikeRecover = drive.trajectoryBuilder(new Pose2d())
-                .forward(-8) //180 degree turn right
-                .build();
-
-        Trajectory CenterSpikeRecover = drive.trajectoryBuilder(new Pose2d())
-                .forward(-6)
-                .build();
-
-        Trajectory BackSideDriveToBoard = drive.trajectoryBuilder(new Pose2d())
-                .forward(60) // Tune Me
-                .build();
-
-        Trajectory BackwardCreep = drive.trajectoryBuilder(new Pose2d())
-                .forward(-0.75) // Tune Me
-                .build();
-
-        //May not want to use this, may need to use smaller increments combined with sensor reads to avoid hitting poles
-        Trajectory FrontSideDriveToBoard = drive.trajectoryBuilder(new Pose2d())
-                .forward(100) // Tune Me
-                .build();
-
-        Trajectory Backup = drive.trajectoryBuilder(new Pose2d())
-                .forward(-5) // Tune Me
-                .build();
-
-        Trajectory TurnAround = drive.trajectoryBuilder(new Pose2d())
-                .strafeLeft(29.4) // Tune Me
-                .build();
-
-        Trajectory RightSpikeSlideRight = drive.trajectoryBuilder(new Pose2d())
-                .lineToLinearHeading(new Pose2d(0, -4, Math.toRadians(-68)))
-                .build();
-
-        Trajectory FastCrawl = drive.trajectoryBuilder(new Pose2d())
-                .forward(10)
-                .build();
-
-        Trajectory MediumCrawl = drive.trajectoryBuilder(new Pose2d())
-                .forward(2.5)
-                .build();
-
-        Trajectory RightSpikeForward = drive.trajectoryBuilder(new Pose2d())
+        TrajectorySequence RightSpikeToBoard = drive.trajectorySequenceBuilder(new Pose2d())
+                .back(10)
+                .turn(-110)
                 .forward(15)
-                .build();
-
-        Trajectory RightSpikeSlideLeft = drive.trajectoryBuilder(new Pose2d())
-                .lineToLinearHeading(new Pose2d(0, 6, Math.toRadians(102)))
-                .build();
-
-        Trajectory LeftSpikeSlideRight = drive.trajectoryBuilder(new Pose2d())
-                .lineToLinearHeading(new Pose2d(0, -7.5, Math.toRadians(-127.5)))
-                .build();
-
-
-        Trajectory ForwardSmall = drive.trajectoryBuilder(new Pose2d())
-                .forward(18)
-                .build();
-
-        Trajectory AprilTagRight = drive.trajectoryBuilder(new Pose2d())
-                .lineToLinearHeading(new Pose2d(0, -1, Math.toRadians(-17)))
-                .build();
-
-        Trajectory AprilTagLeft = drive.trajectoryBuilder(new Pose2d())
-                .lineToLinearHeading(new Pose2d(0, 1, Math.toRadians(17)))
-                .build();
-
-        Trajectory ParkSlideRight = drive.trajectoryBuilder(new Pose2d())
-                .lineToLinearHeading(new Pose2d(0, -6, Math.toRadians(-102)))
-                .build();
-
-        Trajectory ParkForward = drive.trajectoryBuilder(new Pose2d())
-                .forward(8)
-                .build();
-
-        Trajectory CenterSpikeSlideRight = drive.trajectoryBuilder(new Pose2d())
-                .lineToLinearHeading(new Pose2d(0, -6, Math.toRadians(-102)))
+                .strafeLeft(15)
+                .forward(10)
                 .build();
 
         //Control Structure Variables
@@ -272,75 +204,76 @@ public class MJBAuto extends LinearOpMode
             telemetry.update();
             //visionPortal.stopStreaming();
 
-
-            //Go to Correct Spike Line CENTER
+            // CENTER
             if(TeamPropPosition == 5)
             {
                 //Move up to SpikeLine, should overshoot a slight amount
-                drive.followTrajectory(CenterSpikeForward);
-
-
-                //Red Alliance Code, TODO Implement Blue Alliance Code
-                while (SpikeLineFound == false)
-                {
-                    if (colorStarboard.red() > 400 || colorPort.red() > 400) {
-                        SpikeLineFound = true;
-                        //TODO Drop Pixel Code Here
-                        drive.followTrajectory(CenterSpikeRecover);
-                        drive.followTrajectory(CenterSpikeTurn);
-                    } else {
-                        drive.followTrajectory(BackwardCreep);
-                    }
-                }
-
+                drive.followTrajectorySequence(ToCenterSpike);
+                //TODO PLACE PIXEL- REMOVE SLEEP
+                sleep(1000);
+                drive.followTrajectorySequence(CenterSpikeToBoard);
             }
             //LEFT
+            //TODO Move Properly with RoadRunner
             if(TeamPropPosition == 4)
             {
                 //Move up to SpikeLine, should overshoot a slight amount
+                drive.followTrajectorySequence(ToLeftSpike);
+                //TODO PLACE PIXEL- REMOVE SLEEP
+                sleep(1000);
+                drive.followTrajectorySequence(LeftSpikeToBoard);
+                /*
+                // May not need to crawl back, Roadrunner might be accurate enough.
                 drive.followTrajectory(SideSpikeForward);
                 drive.followTrajectory(LeftSpikeTurn);
                 drive.followTrajectory(SideSpikeOvershoot);
-
-                //Red Alliance Code, TODO Implement Blue Alliance Code
                 while (SpikeLineFound == false)
                 {
                     if (colorStarboard.red() > 400 || colorPort.red() > 400) {
                         SpikeLineFound = true;
+                        // Drop Spike Code Here
                         drive.followTrajectory(LeftSpikeRecover);
                         drive.followTrajectory(TurnAround);
-                        //Drop Pixel Here
                     } else {
                         drive.followTrajectory(BackwardCreep);
                     }
-                }
+                }*/
             }
             //RIGHT
+            //TODO Move Properly with RoadRunner
             if(TeamPropPosition == 6)
             {
                 //Move up to SpikeLine, should overshoot a slight amount
+                drive.followTrajectorySequence(ToRightSpike);
+                //TODO PLACE PIXEL- REMOVE SLEEP
+                sleep(1000);
+                drive.followTrajectorySequence(RightSpikeToBoard);
+                /*
+                //May not need to crawl back, Roadrunner might be accurate enough.
                 drive.followTrajectory(SideSpikeForward);
                 drive.followTrajectory(RightSpikeTurn);
                 drive.followTrajectory(SideSpikeOvershoot);
-
-
-                //Red Alliance Code, TODO Implement Blue Alliance Code
                 while (SpikeLineFound == false)
+                drive.turn(Math.toRadians(110));
+                drive.followTrajectory(SideSpikeOvershoot);
                 {
                     if (colorStarboard.red() > 400 || colorPort.red() > 400) {
                         SpikeLineFound = true;
+                        // Drop Pixel Code Here
                         drive.followTrajectory(LeftSpikeRecover);
                         drive.followTrajectory(RightSpikeSlideRight);
                         drive.followTrajectory(RightSpikeForward);
                         drive.followTrajectory(RightSpikeSlideLeft);
-                        //Drop Pixel Here
                     } else {
                         drive.followTrajectory(BackwardCreep);
                     }
                 }
-                //TODO Recover so you don't run over and move your pixel
+                 */
             }
 
+            //Move to backdrop
+            //TODO May not be needed with Roadrunner accuracy
+            /*
             double portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
             double starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
             double averageDistance = (portDistance + starboardDistance) / 2;
@@ -349,7 +282,7 @@ public class MJBAuto extends LinearOpMode
             telemetry.addData("Starboard range", String.format("%.01f in",starboardDistance));
             telemetry.update();
 
-            while(averageDistance>30) //TODO TUNE ME
+            while(averageDistance>30)
             {
                 drive.followTrajectory(FastCrawl);
                 portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
@@ -361,8 +294,6 @@ public class MJBAuto extends LinearOpMode
                 telemetry.addData("Starboard range", String.format("%.01f in",starboardDistance));
                 telemetry.update();
             }
-
-            drive.followTrajectory(LeftSpikeSlideRight);
 
             while(averageDistance>15)
             {
@@ -389,9 +320,12 @@ public class MJBAuto extends LinearOpMode
                 telemetry.addData("Starboard range", String.format("%.01f in",starboardDistance));
                 telemetry.update();
             }
-
+            */
             //Get April Tag Telemetry
 
+            //TODO MAKE THIS WORK
+
+            /*
             boolean TagFound = false;
             while(!TagFound) {
                 telemetryAprilTag();
@@ -424,7 +358,10 @@ public class MJBAuto extends LinearOpMode
 
             drive.followTrajectory(ParkForward);
 
+             */
+
         }
+
 
         //Close at end of OpMode
         visionPortal.close();
