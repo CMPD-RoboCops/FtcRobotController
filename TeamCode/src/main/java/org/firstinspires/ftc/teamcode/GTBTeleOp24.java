@@ -100,6 +100,17 @@ public class GTBTeleOp24 extends LinearOpMode {
     double DroneCurrentPosition = 0;
     double DroneLaunchPosition=1;
 
+    //Port Arm Servo Variables
+    double PortArmCurrentPosition = 0;
+    double PortArmStartPosition = 0;
+
+    //Starboard Arm Servo
+    double StarboardArmCurrentPosition = 0;
+    double StarboardArmStartPosition = 0;
+
+    //Port Arm Servo
+    double PortBridgeCurrentPosition = 0;
+    double PortBridgeStartPosition = 0;
 
 
     @Override
@@ -163,7 +174,7 @@ public class GTBTeleOp24 extends LinearOpMode {
             double armin = -gamepad1.left_trigger;
             double armout = gamepad1.right_trigger;
 
-            if(gamepad2.a) {
+            /*if(gamepad2.a) {
                 starboardbridgeservo.setPower(0.75);
                 portbridgeservo.setPower(-0.75);
                 sleep(500);
@@ -183,7 +194,7 @@ public class GTBTeleOp24 extends LinearOpMode {
                 starboardbridgeservo.setPower(0);
                 portbridgeservo.setPower(0);
             }
-
+            */
             //Arm Extend
             if(gamepad1.x)
             {
@@ -225,6 +236,43 @@ public class GTBTeleOp24 extends LinearOpMode {
                     DroneCurrentPosition=DroneCurrentPosition+0.01;
                 }
             }
+
+            //Port Arm Servo
+            if(gamepad2.a)
+            {
+                while (PortArmCurrentPosition < PortArmStartPosition)
+                {
+                    portarmservo.setPower(-0.75);
+                }
+            }
+            else portarmservo.setPower(0);
+                    //portarmservo.setPosition(PortArmCurrentPosition);
+                    //PortArmCurrentPosition=PortArmCurrentPosition+0.01;
+
+
+
+            //Starboard Arm Servo
+            if(gamepad2.a) {
+                while (StarboardArmCurrentPosition < StarboardArmStartPosition) {
+                    starboardarmservo.setPower(-0.75);
+                }
+            }else starboardarmservo.setPower(0);
+                    //starboardarmservo.setPosition(StarboardArmCurrentPosition);
+                    //StarboardArmCurrentPosition=StarboardArmCurrentPosition+0.01;
+
+
+
+            //Port Bridge Servo
+            if(gamepad2.a)
+            {
+                portbridgeservo.setPower(-0.75);
+            } else portbridgeservo.setPower(0);
+
+            //Starboard Bridge
+            if(gamepad2.a)
+            {
+                starboardbridgeservo.setPower(-0.75);
+            } else starboardbridgeservo.setPower(0);
 
             //Intake Motor Temp Code
             if (gamepad1.b) {
