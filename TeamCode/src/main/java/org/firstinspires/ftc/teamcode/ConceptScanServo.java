@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -8,7 +9,7 @@ import com.qualcomm.robotcore.hardware.ServoControllerEx;
 
 
 @TeleOp(name = "Servo Test", group = "Test")
-//@Disabled
+@Disabled
 public class ConceptScanServo extends LinearOpMode {
 
     //Both Bridge Servos in correct position at 0.2
@@ -39,15 +40,23 @@ public class ConceptScanServo extends LinearOpMode {
     private DcMotor armright = null; //Arm motor right
     private DcMotor armleft = null; //Arm motor left
 
+    private DcMotor backleft = null;
+    private DcMotor rightfront = null;
+    private DcMotor rightback = null;
+
+    private DcMotor frontleft = null;
+
+    private DcMotor intakemotor = null; //Intake motor
+
     //Arm Position Variables
     double armmax = 8;
     double armposition=0;
 
+    double counter = 0;
 
 
     @Override
     public void runOpMode() {
-
 
         //Initialize Servos
         droneservo = hardwareMap.get(Servo.class, "drone servo");
@@ -69,23 +78,29 @@ public class ConceptScanServo extends LinearOpMode {
         ServoControllerEx PortBridgeServoController = (ServoControllerEx) portarmservo.getController();
         ServoControllerEx StarboardBridgeServoController = (ServoControllerEx) starboardarmservo.getController();
 
-        //Initialize Arm Motors
+        //Initialize Motors
         armright = hardwareMap.get(DcMotor.class, "arm right");
         armleft = hardwareMap.get(DcMotor.class, "arm left");
+        intakemotor = hardwareMap.get(DcMotor.class, "intake motor");
+        backleft  = hardwareMap.get(DcMotor.class, "back left");
+        rightback = hardwareMap.get(DcMotor.class, "right back");
+        frontleft  = hardwareMap.get(DcMotor.class, "front left");
+        rightfront = hardwareMap.get(DcMotor.class, "right front");
 
         //Reversing Motors
         armleft.setDirection(DcMotor.Direction.REVERSE);
         armright.setDirection(DcMotor.Direction.REVERSE);
+        intakemotor.setDirection(DcMotor.Direction.FORWARD);
+        frontleft.setDirection(DcMotor.Direction.REVERSE);
+        backleft.setDirection(DcMotor.Direction.REVERSE);
+        rightfront.setDirection(DcMotor.Direction.FORWARD);
+        rightback.setDirection(DcMotor.Direction.FORWARD);
 
 
         // Wait for the start button
         telemetry.addData(">", "MJB Servo Test" );
         telemetry.update();
         waitForStart();
-
-        //starboardbridgeservo.setPosition(0.2);
-        //portbridgeservo.setPosition(0.2);
-
 
         // Scan servo till stop pressed.
             while(opModeIsActive()){
@@ -112,24 +127,6 @@ public class ConceptScanServo extends LinearOpMode {
                     }
                 }
 
-                // Display the current value
-                //telemetry.addData("Servo Position", "%5.2f", position);
-                //telemetry.addData(">", "Press Stop to end test." );
-                //telemetry.update();
-
-                // Set the servo to the new position and pause;
-
-                //starboardarmservo.setPosition(position);
-                //portarmservo.setPosition(position);
-
-                //droneservo.setPosition(position);
-
-                //telemetry.addData("Drone Position", "%5.2f", droneservo.getPosition());
-
-                //telemetry.addData("Starboard Position", "%5.2f", starboardarmservo.getPosition());
-                //telemetry.addData("Port Position     ","%5.2f",portarmservo.getPosition());
-                //telemetry.update();
-
                 double armPower = 1;
 
                 //Both Bridge Servos in correct position at 0.2
@@ -138,13 +135,40 @@ public class ConceptScanServo extends LinearOpMode {
                 //Drone Servo...0.15 is the ready position, 0.3 is launch position
                 //Arm Servos 0.9 is your scoring position
 
-                portclawservo.setPosition(.46);
-                starboardclawservo.setPosition(.86);
+                portclawservo.setPosition(.43); //.46
+                starboardclawservo.setPosition(.87); //.86
                 droneservo.setPosition(.15);
-                portarmservo.setPosition(.85);
-                starboardarmservo.setPosition(.85);
+                portarmservo.setPosition(.8);  //.85
+                starboardarmservo.setPosition(.8); //.85
 
-                if(gamepad1.x)
+                if(gamepad1.a) //attempt to get pixel
+                {
+                    portclawservo.setPosition(.38);
+                    starboardclawservo.setPosition(.89);
+                    sleep(100);
+                    portarmservo.setPosition(0.65);
+                    starboardarmservo.setPosition(.65);
+                    sleep(100);
+                    portclawservo.setPosition(.4);
+                    starboardclawservo.setPosition(.90);
+                    sleep(750);
+                }
+
+                if (gamepad1.b) //intake acquire
+                {
+                    intakemotor.setPower(1);
+                    backleft.setPower(0.5);
+                    sleep(100);
+                    backleft.setPower(0);
+                    rightback.setPower(0.5);
+                    sleep(100);
+                    backleft.setPower(0);
+                    rightback.setPower(0);
+                } else {
+                    intakemotor.setPower(0);
+                }
+
+                if(gamepad1.x) //arm up
                 {
                     PortArmServoController.setServoPwmEnable(portarmservo.getPortNumber());
                     StarboardArmServoController.setServoPwmEnable(starboardarmservo.getPortNumber());
@@ -168,12 +192,6 @@ public class ConceptScanServo extends LinearOpMode {
                     portarmservo.setPosition(0.9);
                     starboardarmservo.setPosition(0.9);
                  }
-
-                if(gamepad1.a)
-                {
-                    portclawservo.setPosition(0.35);
-                    starboardclawservo.setPosition(.91);
-                }
 
 
                 //Arm Retract
@@ -200,6 +218,21 @@ public class ConceptScanServo extends LinearOpMode {
                     PortBridgeServoController.setServoPwmDisable(portarmservo.getPortNumber());
                     StarboardBridgeServoController.setServoPwmDisable(starboardbridgeservo.getPortNumber());
                 }
+
+                if(gamepad1.left_bumper) //port agitate
+                {
+                    portclawservo.setPosition(.38);
+                    sleep(100);
+                    portclawservo.setPosition(.4);
+                }
+
+                if(gamepad1.right_bumper) //starboard agitate
+                {
+                    starboardclawservo.setPosition(.9);
+                    sleep(100);
+                    starboardclawservo.setPosition(.91);
+                }
+
 
                 sleep(CYCLE_MS);
             idle();

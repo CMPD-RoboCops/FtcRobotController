@@ -31,39 +31,10 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoControllerEx;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-/*
- * This file contains an example of a Linear "OpMode".
- * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
- * The names of OpModes appear on the menu of the FTC Driver Station.
- * When a selection is made from the menu, the corresponding OpMode is executed.
- *
- * This particular OpMode illustrates driving a 4-motor Omni-Directional (or Holonomic) robot.
- * This code will work with either a Mecanum-Drive or an X-Drive train.
- * Both of these drives are illustrated at https://gm0.org/en/latest/docs/robot-design/drivetrains/holonomic.html
- * Note that a Mecanum drive must display an X roller-pattern when viewed from above.
- *
- * Also note that it is critical to set the correct rotation direction for each motor.  See details below.
- *
- * Holonomic drives provide the ability for the robot to move in three axes (directions) simultaneously.
- * Each motion axis is controlled by one Joystick axis.
- *
- * 1) Axial:    Driving forward and backward               Left-joystick Forward/Backward
- * 2) Lateral:  Strafing right and left                     Left-joystick Right and Left
- * 3) Yaw:      Rotating Clockwise and counter clockwise    Right-joystick Right and Left
- *
- * This code is written assuming that the right-side motors need to be reversed for the robot to drive forward.
- * When you first test your robot, if it moves backward when you push the left stick forward, then you must flip
- * the direction of all 4 motors (see code below).
- *
- * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list
- */
 
 @TeleOp(name="GTBTeleOp24", group="Linear OpMode")
 //@Disabled
@@ -75,10 +46,10 @@ public class GTBTeleOp24 extends LinearOpMode {
     private DcMotor backleft = null;
     private DcMotor rightfront = null;
     private DcMotor rightback = null;
-    private CRServo portarmservo = null;
-    private CRServo starboardarmservo = null;
-    private CRServo portbridgeservo = null; //Port bridge service
-    private CRServo starboardbridgeservo = null; //Starboard drone service
+    private Servo portarmservo = null;
+    private Servo starboardarmservo = null;
+    private Servo portbridgeservo = null; //Port bridge service
+    private Servo starboardbridgeservo = null; //Starboard drone service
     private Servo droneservo = null; //Drone Servo
     private Servo portclawservo = null; //Port claw servo
     private Servo starboardclawservo = null; //Starboard claw servo
@@ -90,6 +61,7 @@ public class GTBTeleOp24 extends LinearOpMode {
     //Arm Position Variables
     double armmax = 8;
     double armposition=0;
+    double armPower = 1;
 
     //Servo General Variables
     static final int    CYCLE_MS    =   50;     // period of each cycle
@@ -127,10 +99,10 @@ public class GTBTeleOp24 extends LinearOpMode {
 
         //Initialize Servos
         droneservo = hardwareMap.get(Servo.class, "drone servo");
-        starboardarmservo = hardwareMap.get(CRServo.class, "starboard arm servo");
-        starboardbridgeservo = hardwareMap.get(CRServo.class, "starboard bridge servo");
-        portarmservo = hardwareMap.get(CRServo.class, "port arm servo");
-        portbridgeservo = hardwareMap.get(CRServo.class, "port bridge servo");
+        starboardarmservo = hardwareMap.get(Servo.class, "starboard arm servo");
+        starboardbridgeservo = hardwareMap.get(Servo.class, "starboard bridge servo");
+        portarmservo = hardwareMap.get(Servo.class, "port arm servo");
+        portbridgeservo = hardwareMap.get(Servo.class, "port bridge servo");
         starboardclawservo = hardwareMap.get(Servo.class, "starboard claw servo");
         portclawservo = hardwareMap.get(Servo.class, "port claw servo");
 
@@ -139,9 +111,21 @@ public class GTBTeleOp24 extends LinearOpMode {
         backleft.setDirection(DcMotor.Direction.REVERSE);
         rightfront.setDirection(DcMotor.Direction.FORWARD);
         rightback.setDirection(DcMotor.Direction.FORWARD);
-        intakemotor.setDirection(DcMotor.Direction.FORWARD);
+        intakemotor.setDirection(DcMotor.Direction.REVERSE);
         armleft.setDirection(DcMotor.Direction.REVERSE);
         armright.setDirection(DcMotor.Direction.REVERSE);
+
+        //Reversing of servos
+        starboardbridgeservo.setDirection(Servo.Direction.REVERSE);
+        portarmservo.setDirection(Servo.Direction.REVERSE);
+        droneservo.setDirection(Servo.Direction.REVERSE);
+
+        //Assign Controllers
+        ServoControllerEx PortArmServoController = (ServoControllerEx) portarmservo.getController();
+        ServoControllerEx StarboardArmServoController = (ServoControllerEx) starboardarmservo.getController();
+        ServoControllerEx PortBridgeServoController = (ServoControllerEx) portarmservo.getController();
+        ServoControllerEx StarboardBridgeServoController = (ServoControllerEx) starboardarmservo.getController();
+
 
         // Wait for the game to start (driver presses PLAY)
         telemetry.addData("Status", "Initialized");
@@ -154,66 +138,76 @@ public class GTBTeleOp24 extends LinearOpMode {
         while (opModeIsActive()) {
             double max;
 
-
-
-            //Set Motor Power Variables
-            double intakePower = 0.1;
             double armPower = 1;
 
-            // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
-            double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
-            double lateral =  gamepad1.left_stick_x;
-            double yaw     =  gamepad1.right_stick_x;
+            //Both Bridge Servos in correct position at 0.2
+            //Port Claw Servo in correct position at 0.4 to 0.5, but start it at 0.4
+            //Starboard Claw Servo 0.86 to 0.91, start it at .91
+            //Drone Servo...0.15 is the ready position, 0.3 is launch position
+            //Arm Servos 0.9 is your scoring position
 
-            // Button Mapping
-            //boolean portarmservo = gamepad1.a;
-            //boolean starboardarmservo = gamepad1.a;
-            //boolean droneservo = gamepad1.dpad_up;
-            boolean starboardclawservo = gamepad1.x;
-            //boolean intakemotor = gamepad1.b;
-            double armin = -gamepad1.left_trigger;
-            double armout = gamepad1.right_trigger;
+            portclawservo.setPosition(.46); //.46
+            starboardclawservo.setPosition(.86); //.86
+            droneservo.setPosition(.15);
+            portarmservo.setPosition(.85);  //.85
+            starboardarmservo.setPosition(.85); //.85
 
-            /*if(gamepad2.a) {
-                starboardbridgeservo.setPower(0.75);
-                portbridgeservo.setPower(-0.75);
-                sleep(500);
-                starboardarmservo.setPower(-0.75);
-                portarmservo.setPower(0.75);
-                sleep(2000);
-            } else if(gamepad2.b) {
-                starboardarmservo.setPower(0.75);
-                portarmservo.setPower(-0.75);
-                sleep(500);
-                starboardbridgeservo.setPower(-0.75);
-                portbridgeservo.setPower(0.75);
-
-            } else {
-                starboardarmservo.setPower(0);
-                portarmservo.setPower(0);
-                starboardbridgeservo.setPower(0);
-                portbridgeservo.setPower(0);
-            }
-            */
-            //Arm Extend
-            if(gamepad1.x)
+            if (gamepad1.a) //intake acquire
             {
-              while(armposition<armmax)
-              {
-                  armleft.setPower(-armPower);
-                  armright.setPower(armPower);
-                  sleep(100);
-                  armleft.setPower(0);
-                  armright.setPower(0);
-                  armposition++;
-              }
+                intakemotor.setPower(1);
+                sleep(100);
+                backleft.setPower(0);
+                sleep(100);
+            } else {
+                intakemotor.setPower(0);
+            }
+
+            if(gamepad1.b) //attempt to get pixel
+            {
+                portclawservo.setPosition(.38);
+                starboardclawservo.setPosition(.88);
+                sleep(100);
+                portarmservo.setPosition(0.65);
+                starboardarmservo.setPosition(.65);
+                portclawservo.setPosition(.41);
+                starboardclawservo.setPosition(.89);
+                sleep(750);
+            }
+
+
+            if(gamepad1.x) //arm up
+            {
+                PortArmServoController.setServoPwmEnable(portarmservo.getPortNumber());
+                StarboardArmServoController.setServoPwmEnable(starboardarmservo.getPortNumber());
+                PortBridgeServoController.setServoPwmEnable(portarmservo.getPortNumber());
+                StarboardBridgeServoController.setServoPwmEnable(starboardbridgeservo.getPortNumber());
+
+                while(armposition<armmax)
+                {
+                    armleft.setPower(-armPower);
+                    armright.setPower(armPower);
+                    sleep(100);
+                    armleft.setPower(0);
+                    armright.setPower(0);
+                    armposition++;
+                }
                 armleft.setPower(-0.1);
                 armright.setPower(0.1);
+
+                starboardbridgeservo.setPosition(0.2);
+                portbridgeservo.setPosition(0.2);
+                portarmservo.setPosition(0.9);
+                starboardarmservo.setPosition(0.9);
             }
 
             //Arm Retract
             if(gamepad1.y)
             {
+                portarmservo.setPosition(.85);
+                starboardarmservo.setPosition(.85);
+                starboardbridgeservo.setPosition(1);
+                portbridgeservo.setPosition(1);
+
                 while(armposition>0)
                 {
                     armleft.setPower(armPower);
@@ -225,65 +219,31 @@ public class GTBTeleOp24 extends LinearOpMode {
                 }
                 armleft.setPower(0);
                 armright.setPower(0);
+                PortArmServoController.setServoPwmDisable(portarmservo.getPortNumber());
+                StarboardArmServoController.setServoPwmDisable(starboardarmservo.getPortNumber());
+                PortBridgeServoController.setServoPwmDisable(portarmservo.getPortNumber());
+                StarboardBridgeServoController.setServoPwmDisable(starboardbridgeservo.getPortNumber());
             }
 
-            //Drone Launch
-            if(gamepad1.dpad_up)
+            if(gamepad1.left_bumper) //port agitate
             {
-                while(DroneCurrentPosition<DroneLaunchPosition)
-                {
-                    droneservo.setPosition(DroneCurrentPosition);
-                    DroneCurrentPosition=DroneCurrentPosition+0.01;
-                }
+                portclawservo.setPosition(.38);
+                sleep(100);
+                portclawservo.setPosition(.4);
             }
 
-            //Port Arm Servo
-            if(gamepad2.a)
+            if(gamepad1.right_bumper) //starboard agitate
             {
-                while (PortArmCurrentPosition < PortArmStartPosition)
-                {
-                    portarmservo.setPower(-0.75);
-                }
-            }
-            else portarmservo.setPower(0);
-                    //portarmservo.setPosition(PortArmCurrentPosition);
-                    //PortArmCurrentPosition=PortArmCurrentPosition+0.01;
-
-
-
-            //Starboard Arm Servo
-            if(gamepad2.a) {
-                while (StarboardArmCurrentPosition < StarboardArmStartPosition) {
-                    starboardarmservo.setPower(-0.75);
-                }
-            }else starboardarmservo.setPower(0);
-                    //starboardarmservo.setPosition(StarboardArmCurrentPosition);
-                    //StarboardArmCurrentPosition=StarboardArmCurrentPosition+0.01;
-
-
-
-            //Port Bridge Servo
-            if(gamepad2.a)
-            {
-                portbridgeservo.setPower(-0.75);
-            } else portbridgeservo.setPower(0);
-
-            //Starboard Bridge
-            if(gamepad2.a)
-            {
-                starboardbridgeservo.setPower(-0.75);
-            } else starboardbridgeservo.setPower(0);
-
-            //Intake Motor Temp Code
-            if (gamepad1.b) {
-                intakePower = 1.0;
-            } else if (gamepad1.a) {
-                intakePower = -1.0;
-            } else {
-                intakePower = 0.0;
+                starboardclawservo.setPosition(.88);
+                sleep(100);
+                starboardclawservo.setPosition(.89);
             }
 
-            intakemotor.setPower(intakePower);
+            // POV Mode uses left joystick to go forward & strafe, and right joystick to rotate.
+            double axial   = -gamepad1.left_stick_y;  // Note: pushing stick forward gives negative value
+            double lateral =  gamepad1.left_stick_x;
+            double yaw     =  gamepad1.right_stick_x;
+
 
             // Combine the joystick requests for each axis-motion to determine each wheel's power.
             // Set up a variable for each drive wheel to save the power level for telemetry.
@@ -304,24 +264,6 @@ public class GTBTeleOp24 extends LinearOpMode {
                 leftBackPower   /= max;
                 rightBackPower  /= max;
             }
-
-            // This is test code:
-            //
-            // Uncomment the following code to test your motor directions.
-            // Each button should make the corresponding motor run FORWARD.
-            //   1) First get all the motors to take to correct positions on the robot
-            //      by adjusting your Robot Configuration if necessary.
-            //   2) Then make sure they run in the correct direction by modifying the
-            //      the setDirection() calls above.
-            // Once the correct motors move in the correct direction re-comment this code.
-
-            /*
-            leftFrontPower  = gamepad1.x ? 1.0 : 0.0;  // X gamepad
-            leftBackPower   = gamepad1.a ? 1.0 : 0.0;  // A gamepad
-            rightFrontPower = gamepad1.y ? 1.0 : 0.0;  // Y gamepad
-            rightBackPower  = gamepad1.b ? 1.0 : 0.0;  // B gamepad
-            */
-
 
             // Send calculated power to wheels
             frontleft.setPower(leftFrontPower);
