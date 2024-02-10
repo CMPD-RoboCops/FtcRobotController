@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.ServoControllerEx;
 import com.qualcomm.robotcore.util.MovingStatistics;
 import com.acmerobotics.roadrunner.geometry.Pose2d;
 import com.acmerobotics.roadrunner.geometry.Vector2d;
@@ -75,6 +76,21 @@ public class MJBAuto extends LinearOpMode
     double position = .38;
     boolean rampUp = true;
 
+    private Servo portarmservo = null;  //Port Arm Servo
+    private Servo starboardarmservo = null; //Starboard Arm Servo
+    private Servo portbridgeservo = null; //Port bridge service
+    private Servo starboardbridgeservo = null; //Starboard bridge service
+    private Servo droneservo = null; //Drone Servo
+    private Servo portclawservo = null; //Port claw servo
+    private Servo starboardclawservo = null; //Starboard claw servo
+    private DcMotor armright = null; //Arm motor right
+    private DcMotor armleft = null; //Arm motor left
+
+    //Arm Position Variables
+    double armmax = 8;
+    double armposition=0;
+
+
     @Override
     public void runOpMode() throws InterruptedException
     {
@@ -84,6 +100,35 @@ public class MJBAuto extends LinearOpMode
         //Update Telemetry
         telemetry.addData(">", "Touch Play to start Autonomous");
         telemetry.update();
+
+        //Initialize Servos
+        droneservo = hardwareMap.get(Servo.class, "drone servo");
+        starboardarmservo = hardwareMap.get(Servo.class, "starboard arm servo");
+        starboardbridgeservo = hardwareMap.get(Servo.class, "starboard bridge servo");
+        starboardclawservo = hardwareMap.get(Servo.class, "starboard claw servo");
+        portarmservo = hardwareMap.get(Servo.class, "port arm servo");
+        portbridgeservo = hardwareMap.get(Servo.class, "port bridge servo");
+        portclawservo = hardwareMap.get(Servo.class, "port claw servo");
+
+        //Reversing of servos
+        starboardbridgeservo.setDirection(Servo.Direction.REVERSE);
+        portarmservo.setDirection(Servo.Direction.REVERSE);
+        droneservo.setDirection(Servo.Direction.REVERSE);
+
+        //Assign Controllers
+        ServoControllerEx PortArmServoController = (ServoControllerEx) portarmservo.getController();
+        ServoControllerEx StarboardArmServoController = (ServoControllerEx) starboardarmservo.getController();
+        ServoControllerEx PortBridgeServoController = (ServoControllerEx) portarmservo.getController();
+        ServoControllerEx StarboardBridgeServoController = (ServoControllerEx) starboardarmservo.getController();
+
+        //Initialize Arm Motors
+        armright = hardwareMap.get(DcMotor.class, "arm right");
+        armleft = hardwareMap.get(DcMotor.class, "arm left");
+
+        //Reversing Motors
+        armleft.setDirection(DcMotor.Direction.REVERSE);
+        armright.setDirection(DcMotor.Direction.REVERSE);
+
 
         //RoadRunner Initiation
         SampleMecanumDrive drive = new SampleMecanumDrive(hardwareMap);
@@ -102,7 +147,6 @@ public class MJBAuto extends LinearOpMode
 
         //Define Your Trajectories Here
         //TODO TUNE ALL
-        //TODO CREATE TRAJECTORIES FOR APRIL TAGS AND PARKING
         //NOTE Using Trajectory Sequence now.
         Pose2d startPose = new Pose2d(0, 0, 0);
 
@@ -142,6 +186,26 @@ public class MJBAuto extends LinearOpMode
                 .forward(10)
                 .build();
 
+        TrajectorySequence AprilTagSlideRight = drive.trajectorySequenceBuilder(new Pose2d())
+                .strafeRight(7.5)
+                .build();
+
+        TrajectorySequence AprilTagSlideLeft = drive.trajectorySequenceBuilder(new Pose2d())
+                .strafeLeft(7.5)
+                .build();
+
+        TrajectorySequence LeftPark = drive.trajectorySequenceBuilder(new Pose2d())
+                .strafeRight(42)
+                .build();
+
+        TrajectorySequence CenterPark = drive.trajectorySequenceBuilder(new Pose2d())
+                .strafeRight(36)
+                .build();
+
+        TrajectorySequence RightPark = drive.trajectorySequenceBuilder(new Pose2d())
+                .strafeRight(30)
+                .build();
+
         //Control Structure Variables
         int TeamPropPosition = 0;
         boolean SpikeLineFound = false;
@@ -152,6 +216,9 @@ public class MJBAuto extends LinearOpMode
 
         //Very last thing before OpModeIsActive
         waitForStart();
+
+        portclawservo.setPosition(.46);
+        starboardclawservo.setPosition(.86);
 
         if (opModeIsActive())
         {
@@ -209,8 +276,7 @@ public class MJBAuto extends LinearOpMode
             {
                 //Move up to SpikeLine, should overshoot a slight amount
                 drive.followTrajectorySequence(ToCenterSpike);
-                //TODO PLACE PIXEL- REMOVE SLEEP
-                sleep(1000);
+                portclawservo.setPosition(0.35);
                 drive.followTrajectorySequence(CenterSpikeToBoard);
             }
             //LEFT
@@ -219,8 +285,7 @@ public class MJBAuto extends LinearOpMode
             {
                 //Move up to SpikeLine, should overshoot a slight amount
                 drive.followTrajectorySequence(ToLeftSpike);
-                //TODO PLACE PIXEL- REMOVE SLEEP
-                sleep(1000);
+                portclawservo.setPosition(0.35);
                 drive.followTrajectorySequence(LeftSpikeToBoard);
                 /*
                 // May not need to crawl back, Roadrunner might be accurate enough.
@@ -245,8 +310,7 @@ public class MJBAuto extends LinearOpMode
             {
                 //Move up to SpikeLine, should overshoot a slight amount
                 drive.followTrajectorySequence(ToRightSpike);
-                //TODO PLACE PIXEL- REMOVE SLEEP
-                sleep(1000);
+                portclawservo.setPosition(0.35);
                 drive.followTrajectorySequence(RightSpikeToBoard);
                 /*
                 //May not need to crawl back, Roadrunner might be accurate enough.
@@ -272,7 +336,7 @@ public class MJBAuto extends LinearOpMode
             }
 
             //Move to backdrop
-            //TODO May not be needed with Roadrunner accuracy
+            //TODO May need to be re-added if Roadrunner is not consistent enough
             /*
             double portDistance = sensorDistancePort.getDistance(DistanceUnit.INCH);
             double starboardDistance = sensorDistanceStarboard.getDistance(DistanceUnit.INCH);
@@ -323,9 +387,8 @@ public class MJBAuto extends LinearOpMode
             */
             //Get April Tag Telemetry
 
-            //TODO MAKE THIS WORK
+            //TODO Improve Efficiency
 
-            /*
             boolean TagFound = false;
             while(!TagFound) {
                 telemetryAprilTag();
@@ -333,10 +396,10 @@ public class MJBAuto extends LinearOpMode
                 for (AprilTagDetection detection : aprilTag.getDetections()) {
                     if (detection.metadata != null) {
                         if (detection.id > TeamPropPosition) {
-                            drive.followTrajectory(AprilTagLeft);
+                            drive.followTrajectorySequence(AprilTagSlideLeft);
                             break;
                         } else if (detection.id < TeamPropPosition) {
-                            drive.followTrajectory(AprilTagRight);
+                            drive.followTrajectorySequence(AprilTagSlideRight);
                             break;
                         } else if (detection.id == TeamPropPosition) {
                             TagFound = true;
@@ -349,16 +412,12 @@ public class MJBAuto extends LinearOpMode
             visionPortal.stopStreaming();
 
             if(TeamPropPosition == 4) {
-                drive.followTrajectory(ParkSlideRight);
+                drive.followTrajectorySequence(LeftPark);
             } else if(TeamPropPosition == 5) {
-                drive.followTrajectory(ParkSlideRight);
+                drive.followTrajectorySequence(CenterPark);
             } else if(TeamPropPosition == 6) {
-                drive.followTrajectory(CenterSpikeSlideRight);
+                drive.followTrajectorySequence(RightPark);
             }
-
-            drive.followTrajectory(ParkForward);
-
-             */
 
         }
 
