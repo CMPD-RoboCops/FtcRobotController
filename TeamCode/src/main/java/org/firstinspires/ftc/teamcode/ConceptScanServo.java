@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.hardware.ServoControllerEx;
 
 
 @TeleOp(name = "Servo Test", group = "Test")
-@Disabled
+//@Disabled
 public class ConceptScanServo extends LinearOpMode {
 
     //Both Bridge Servos in correct position at 0.2
@@ -20,11 +20,11 @@ public class ConceptScanServo extends LinearOpMode {
 
     static final double INCREMENT   = 0.01;     // amount to slew servo each CYCLE_MS cycle
     static final int    CYCLE_MS    =   50;     // period of each cycle
-    static final double MAX_POS     =  0.9;     // Maximum rotational position
-    static final double MIN_POS     =  0.8;     // Minimum rotational position
+    static final double MAX_POS     =  0.3;     // Maximum rotational position
+    static final double MIN_POS     =  0.5;     // Minimum rotational position
 
     //double  position = (MAX_POS - MIN_POS) / 2; // Start at halfway position
-    double position = 0.9;
+    double position = 0.4;
     boolean rampUp = true;
 
 
@@ -37,6 +37,7 @@ public class ConceptScanServo extends LinearOpMode {
     private Servo droneservo = null; //Drone Servo
     private Servo portclawservo = null; //Port claw servo
     private Servo starboardclawservo = null; //Starboard claw servo
+    private Servo cameraservo = null; //Camera Servo
     private DcMotor armright = null; //Arm motor right
     private DcMotor armleft = null; //Arm motor left
 
@@ -66,6 +67,7 @@ public class ConceptScanServo extends LinearOpMode {
         portarmservo = hardwareMap.get(Servo.class, "port arm servo");
         portbridgeservo = hardwareMap.get(Servo.class, "port bridge servo");
         portclawservo = hardwareMap.get(Servo.class, "port claw servo");
+        cameraservo = hardwareMap.get(Servo.class, "camera servo");
 
         //Reversing of servos
         starboardbridgeservo.setDirection(Servo.Direction.REVERSE);
@@ -109,23 +111,29 @@ public class ConceptScanServo extends LinearOpMode {
                 if (rampUp) {
                     // Keep stepping up until we hit the max value.
                     position += INCREMENT ;
-                    //telemetry.addData("Position: ",position);
-                    //telemetry.update();
+                    telemetry.addData("Position: ",position);
+                    telemetry.update();
                     if (position >= MAX_POS ) {
                         position = MAX_POS;
                         rampUp = !rampUp;   // Switch ramp direction
                     }
+                    sleep(500);
                 }
                 else {
                     // Keep stepping down until we hit the min value.
                     position -= INCREMENT ;
-                    //telemetry.addData("Position: ",position);
-                    //telemetry.update();
+                    telemetry.addData("Position: ",position);
+                    telemetry.update();
                     if (position <= MIN_POS ) {
                         position = MIN_POS;
                         rampUp = !rampUp;  // Switch ramp direction
                     }
+                    sleep(500);
                 }
+
+                telemetry.addData("Camera Servo Position: ",cameraservo.getPosition());
+                telemetry.update();
+                cameraservo.setPosition(position);
 
                 double armPower = 1;
 

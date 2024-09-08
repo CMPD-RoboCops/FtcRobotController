@@ -53,7 +53,7 @@ import java.util.List;
  */
 
 @TeleOp(name = "Blue Car TensorFlow Object Detection Alex", group = "Concept")
-@Disabled
+//@Disabled
 public class BlueCar_ObjectDetection extends LinearOpMode {
 
     private DcMotor leftFront = null;

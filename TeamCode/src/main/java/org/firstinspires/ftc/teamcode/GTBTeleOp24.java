@@ -61,7 +61,7 @@ public class GTBTeleOp24 extends LinearOpMode {
     //Arm Position Variables
     double armmax = 8;
     double armposition=0;
-    double armPower = 1;
+    //double armPower = 1;
 
     //Servo General Variables
     static final int    CYCLE_MS    =   50;     // period of each cycle
